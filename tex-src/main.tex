@@ -1,0 +1,96 @@
+% --------------------------------------------------------------
+% Abhi's Standard math Preamble.
+% --------------------------------------------------------------
+ 
+% Document packages / layout
+\documentclass[
+    pdf,
+    11pt,
+    xcolor={svgnames},
+    %hyperref={colorlinks, citecolor=Cyan, linkcolor=Cyan, urlcolor=Cyan}
+  ]{beamer}
+%\usetheme{Copenhagen}
+\usetheme{Madrid}
+\usecolortheme{beaver}
+\usepackage{color}
+
+% Figure Packages
+\usepackage{float}
+\usepackage{subcaption}
+
+% Math Packages
+\usepackage{amsmath,amsthm,amssymb,mathrsfs,bm}
+\usepackage{commath}
+
+% Quality of Life Packages
+\usepackage{enumerate}
+\usepackage{siunitx} %\sisetup{inter-unit-product =$\cdot$}
+\usepackage{multicol}
+
+\newtheorem*{lemma*}{Lemma}
+\newtheorem*{theorem*}{Theorem}
+
+% Creates section subdivider at beginning of each section.
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+ 
+\title[%
+  Efficient UQ for Bayesian Seismic Inversion
+]{%
+  Efficient Metrics for Uncertainty Quantification in a Bayesian Seismic
+  Inversion Setting
+}
+\author[Chowdhary, Alexanderian]{%
+  Abhijit Chowdhary and Alen Alexanderian
+}
+\institute[NCSU]{
+  Department of Mathematics \\
+  North Carolina State University
+}
+\date[AMGSS 2022]{\today}
+
+\begin{document}
+ 
+\frame{ \titlepage \scriptsize{ Insert NSF Grant support here?  } }
+
+\begin{frame}
+  \frametitle{Table of Contents}
+  \tableofcontents
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Introduction and Goals
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction and Goals}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Seismic Inversion Model Problem
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Seismic Inversion Model Problem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Bayesian Inversion Setting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Bayesian Inversion Setting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Numerical Discretization and Considerations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Numerical Discretization and Considerations}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Results
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Discussion and Future Work
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion and Future Work}
+
+\end{document}
