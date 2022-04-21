@@ -4,9 +4,10 @@ LatexFlags= -jobname=$(JobName) --shell-escape
 
 default:
 	make build
+	bibtex $(JobName)
 	make build
+	#make build
 	make clean
-	cp $(JobName).pdf ../
 
 build:
 	$(TeX) $(LatexFlags) main.tex
