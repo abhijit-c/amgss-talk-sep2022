@@ -4,9 +4,9 @@ LatexFlags= -jobname=$(JobName) --shell-escape
 
 default:
 	make build
-	bibtex $(JobName)
+	biber $(JobName)
 	make build
-	#make build
+	make build
 	make clean
 
 build:
@@ -15,4 +15,5 @@ build:
 clean:
 	rm -f $(JobName).log $(JobName).aux $(JobName).out $(JobName).toc *.cpt
 	rm -f $(JobName).nav $(JobName).snm $(JobName).vrb
+	rm -f $(JobName).bbl $(JobName).blg $(JobName).bcf $(JobName).run.xml
 	rm -rf _minted-*

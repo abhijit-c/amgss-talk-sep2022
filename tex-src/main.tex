@@ -5,7 +5,7 @@
 % Document packages / layout
 \documentclass[
     pdf,
-    11pt,
+    10pt,
     xcolor={svgnames},
     %hyperref={colorlinks, citecolor=Cyan, linkcolor=Cyan, urlcolor=Cyan}
   ]{beamer}
@@ -17,6 +17,16 @@
 
 \newcommand\hmmax{0}
 \newcommand\bmmax{0}
+
+\usepackage{biblatex}
+\addbibresource{citations.bib}
+
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
 
 % Figure Packages
 \usepackage{float}
@@ -32,7 +42,6 @@
 \usepackage{physics}
 \usepackage{stmaryrd}
 \allowdisplaybreaks
-
 
 % Quality of Life Packages
 \usepackage{enumerate}
@@ -84,10 +93,9 @@
 }
  
 \title[%
-  Seismic Inversion in the Bayesian Framework
+  Fault slip inversion via Bayesian inference
 ]{%
-  Seismic Inversion in the Bayesian Framework for Infinite-Dimensional Inverse
-  Problems
+  Infinite-dimensional Bayesian inversion for fault slip from surface measurements
 }
 \author[Chowdhary, Alexanderian]{%
   Abhijit Chowdhary and Alen Alexanderian
@@ -106,16 +114,16 @@
   \begin{figure}
     \centering
     \includegraphics[width=0.85\textwidth]{./resources/Cocos}
-    \caption{\cite{Cocos2006}}
   \end{figure}
+  \blfootnote{\fullcite{Cocos2006}}
 \end{frame}
 
 \begin{frame}
   \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{./resources/subduction_zone}
-    \caption{\cite{Lillie2017}}
   \end{figure}
+  \blfootnote{\fullcite{Lillie2017}}
 \end{frame}
 
 \begin{frame}
@@ -173,6 +181,7 @@
     \end{itemize}
   \item $\mu$ and $\lambda$ are known as the L\'{a}me constants.
   \end{itemize}
+  \blfootnote{\fullcite{McCormack2018}}
 \end{frame}
 \begin{frame}
   \frametitle{Forward Model}
@@ -262,7 +271,7 @@
   optimization problem:
   \[
     \mc{J}(\vec{m})
-    = \min_\vec{m} \frac{1}{2} \| \mc{B}\vec{u}(\vec{m}) - \obs \|^2
+    = \frac{1}{2} \| \mc{B}\vec{u}(\vec{m}) - \obs \|^2
     + \frac{1}{2} \| \mc{A}\vec{m} \|^2
   \]
   where $\vec{u}$ is given by the solution of the linear elasticity equation.
@@ -278,20 +287,236 @@
   } $\mc{F} = \mc{B} \mc{S}$, then:
   \[
     \mc{J}(\vec{m})
-    = \min_\vec{m} \frac{1}{2} \| \mc{F}\vec{m} - \obs \|^2
+    = \frac{1}{2} \| \mc{F}\vec{m} - \obs \|^2
     + \frac{1}{2} \| \mc{A}\vec{m} \|^2
   \]
 \end{frame}
 
 \begin{frame}
-  \frametitle{Bayes Inference in Infinite Dimensions}
+  \frametitle{Bayesian Inversion in Finite Dimensions}
+  \begin{theorem}[Bayes Theorem in Finite Dimensions]
+    \[
+      \pi_{\rm post}(\vb{m} | \mathbf{u}^{\rm obs})
+      \propto
+      \pi_{\rm like}(\mathbf{u}^{\rm obs} | \vb{m})
+      \pi_{\rm prior}(\vb{m})
+    \]
+  \end{theorem}
+  \begin{itemize}
+    \item Gaussian Prior $\vb{m} \sim \mc{N}(\vb{m}_{\rm pr}, \mat{\Gamma}_{\rm pr})$.
+    \item Additive Gaussian noise
+      \[
+        \obs = \mat{F} \vb{m} + \vb*{\eta},
+        \quad \vb*{\eta} \sim \mc{N}(\vb{0}, \mat{\Gamma}_{\rm noise})
+      \]
+    \item Posterior is therefore Gaussian with:
+      \[
+        \vb{m} | \mathbf{u}^{\rm obs} 
+        \sim \mc{N}(\vb{m}_{\rm post} , \vb{\Gamma}_{\rm post})
+      \]
+      where:
+      \begin{align*}
+        \vb{m}_{\rm post}
+        &=
+        \vb{\Gamma}_{\rm post}
+        \left(
+          \mat{F}^\T \vb{\Gamma}_{\rm noise}^{-1} \mathbf{u}^{\rm obs}
+          + \vb{\Gamma}_{\rm pr}^{-1} \vb{m}_{\rm pr}
+        \right) \\
+        \vb{\Gamma}_{\rm post}
+        &=
+        \left(
+          \mat{F}^\T \vb{\Gamma}_{\rm noise}^{-1} \mat{F}
+          + \vb{\Gamma}_{\rm pr}^{-1}
+        \right)^{-1} \\
+      \end{align*}
+  \end{itemize}
+  Corresponds to
+  \(
+    \mc{J}(\vb{m})
+    = \frac{1}{2} \| \mc{F}\vb{m} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
+    + \frac{1}{2} \| \vb{m} - \vb{m}_{\rm pr}\|_{\vb{\Gamma}_{\rm pr}^{-1}}^2
+  \).
+\end{frame}
+\begin{frame}
+  \frametitle{Bayesian Inversion in Infinite Dimensions}
+  \begin{theorem}[Bayes Theorem in Infinite Dimensions]
+    \[
+      \dv{\mu^{\obs}_{\rm post}}{\mu_{\rm pr}}
+      \propto
+      \pi_{\rm like}(\obs | \vec{m})
+    \]
+  \end{theorem}
+  \begin{itemize}
+    \item Gaussian Prior $\vec{m} \sim \mc{N}(\vec{m}_{\rm pr}, \mc{C}_0)$.
+    \item Additive Gaussian noise
+      \[
+        \obs = \mc{F} \vec{m} + \vb*{\eta},
+        \quad \vb*{\eta} \sim \mc{N}(\vb{0}, \mat{\Gamma}_{\rm noise})
+      \]
+    \item The pair $(\vec{m}, \obs)$ is jointly Gaussian with:
+      \[
+        \mu^{\obs}_{\rm post}
+        =
+        \mc{N}(\vec{m}_{\rm post} , \mc{C}_{\rm post})
+      \]
+      where:
+      \begin{align*}
+        \vec{m}_{\rm post}
+        &=
+        \mc{C}_{\rm post}
+        \left(
+          \mc{F}^* \vb{\Gamma}_{\rm noise}^{-1} \obs
+          + \mc{C}_{\rm pr}^{-1} \vec{m}_{\rm pr}
+        \right) \\
+        \mc{C}_{\rm post}
+        &=
+        \left(
+          \mc{F}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{F}
+          + \mc{C}_{\rm pr}^{-1}
+        \right)^{-1} \\
+      \end{align*}
+  \end{itemize} \vspace{-1em}
+  Corresponds to
+  \(
+    \mc{J}(\vec{m})
+    = \frac{1}{2} \| \mc{F}\vec{m} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
+    + \frac{1}{2} \| \mc{C}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
+  \).
 \end{frame}
 
+\begin{frame}
+  \frametitle{Returning to Fault Inversion}
+  \textbf{Slight Wrinkle:} Our parameter-to-observable map is affine.
+  \pause
+  \begin{block}{}
+    We want to minimize
+    \[
+      \mc{J}(\vec{m})
+      = \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
+      + \frac{1}{2} \| \mc{C}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
+    \]
+  \end{block}
+  \pause
+  Define:
+  \begin{align*}
+    \mc{L}(\vec{m}, \vec{u}, \vec{v})
+    &= \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
+    + \frac{1}{2} \| \mc{C}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2 
+    + \int_{\Gamma_s} \beta^{-1} (\vec{u} - \vec{h}) \vdot \vec{v} \dd{s} \\
+    &+ \int_{\Gamma_b} \delta^{-1} (\mat{T} \vec{u} - \vec{m}) \vdot \vec{v}
+    \dd{s} 
+    + \int_\Omega \vec{\e}(\vec{u}) : \mathbb{C}[\vec{\e}(\vec{v})] \dd{\vec{x}}
+  \end{align*}
+  \textbf{Procedure:} Obtain $\vec{m}$ by enforcing $\mc{L}_\vec{m}
+  = \mc{L}_\vec{u} = \mc{L}_\vec{v} = 0$.
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Numerical Discretization and Considerations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical Discretization and Considerations}
+\begin{frame}
+  \frametitle{FEM Discretization}
+  \begin{itemize}
+    \item Consider finite element space $\mc{V}_h = {\rm Span}(\phi_1, \dots,
+      \phi_n)$.
+    \item $\phi_k$: Lagrange basis functions. 
+    \item For $\vb{f} \in \mc{V}_h$:
+      \[
+        \vb{f} = \sum_{k=1}^n f_k \phi_k
+      \]
+    In particular, construct $\vb{u}, \vb{v}, \vb{m}, \vb{m}_{\rm pr},
+      \vb{h} \in \mc{V}_h$ from $\vec{u}, \vec{v}, \vec{m}, \vec{m}_{\rm pr}$
+      and $\vec{h}$.
+    \item Finite dimensional Hilbert space 
+      \[
+        (\mc{V}_h, \inp{\cdot}{\cdot}_{L^2})
+        \cong 
+        (\R^n, \inp{\cdot}{\cdot}_M),
+        \qquad \inp{\vb{u}}{\vb{v}} = \vb{u}^\T \mat{M} \vb{v}
+      \]
+    \item From the Lagrangian we find
+      \[
+        \begin{bmatrix}
+          \mat{C}_{\rm pr}^{-1} & & -\mat{C}^* \\
+          & \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \mat{B} & \mat{A}^* \\
+          -\mat{C} & \mat{A} & 
+        \end{bmatrix}
+        \begin{bmatrix} \vb{m} \\ \vb{u} \\ \vb{v} \end{bmatrix}
+        = \begin{bmatrix}
+          \mat{C}_{\rm pr}^{-1} \vb{m}_0 \\ 
+          \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \obs \\
+          \mat{D} \vb{h}
+        \end{bmatrix}
+      \]
+      where $\mat{A} \vb{u} = \mat{C} \vb{m} + \mat{D} \vb{h}$ is the discretized
+      weak form.
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{Reduced Linear System}
+  \begin{block}{Parameter-to-Observable Map}
+    From the discretized weak form we can define:
+    \[
+      \mat{A}\vb{u} = \mat{C} \vb{m} + \mat{D} \vb{h}
+      \implies
+      \mc{F}(\vb{m}) = \mat{B} \mat{A}^{-1} \left[
+        \mat{C} \vb{m} + \mat{D} \vb{h}
+      \right]
+      = \mc{G} \vb{m} + \vb{g}
+    \]
+  \end{block}
+  \pause
+  With this:
+  \[
+    \begin{bmatrix}
+      \mat{C}_{\rm pr}^{-1} & & -\mat{C}^* \\
+       & \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \mat{B} & \mat{A}^* \\
+      -\mat{C} & \mat{A} & 
+    \end{bmatrix}
+    \begin{bmatrix} \vb{m} \\ \vb{u} \\ \vb{v} \end{bmatrix}
+    = \begin{bmatrix}
+      \mat{C}_{\rm pr}^{-1} \vb{m}_0 \\ 
+      \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \obs \\
+      \mat{D} \vb{h}
+    \end{bmatrix}
+  \]
+  can be reduced to
+  \[
+    \left(
+      \mat{C}_{\rm pr}^{-1} + \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G}
+    \right)\vb{m}
+    = \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \left( \vb{g} + \obs \right)
+    + \mat{C}_{\rm pr}^{-1} \vb{m}_0
+  \]
+\end{frame}
+
+\begin{frame}
+  \frametitle{Tractability of Computation}
+  \[
+    \underbrace{\left[
+        \mat{C}_{\rm pr}^{-1} + \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G}
+    \right]}_{\mat{C}_{\rm post}^{-1}}
+    \vb{m}_{\rm post}
+    =
+    \left[
+      \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \left( \vb{g} + \obs \right)
+      + \mat{C}_{\rm pr}^{-1} \vb{m}_0
+    \right]
+  \]
+  How do we make this computation tractable?
+  \pause
+  \begin{itemize}
+    \item Use symmetry aware solvers
+    \item Leverage sparsity of 
+      \begin{itemize}
+        \item matrices induced by differential operators
+        \item observations
+      \end{itemize}
+    \item Exploit the dimensionality reduction in the parameter space
+  \end{itemize}
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Results
@@ -310,8 +535,7 @@
 \section{References}
 \begin{frame}[allowframebreaks]
   \frametitle{References}
-  \bibliographystyle{amsalpha}
-  \bibliography{citations.bib}
+  \printbibliography
 \end{frame}
 
 \end{document}
