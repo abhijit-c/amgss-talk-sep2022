@@ -742,6 +742,20 @@
         \vb{s} = \vb{m} + \mat{L} \vb{n}
       \]
   \end{itemize}
+  \pause
+  Since $\mc{C}_{\rm pr} = \mc{A}^{-2}$, prior is easy. For posterior:
+  \begin{align*}
+    \mat{L}
+    &= 
+    \mat{C}_{\rm pr}^{1/2}
+    (\mat{V}_r \mat{P}_r \mat{V}_r^* + \mat{I})
+    \mat{M_p}^{-1/2} \\
+    \mat{P}_r
+    &=
+    {\rm Diag}\left(
+      \frac{1}{\sqrt{\lambda_1 + 1} - 1}
+    \right)
+  \end{align*}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
