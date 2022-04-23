@@ -4,11 +4,12 @@
  
 % Document packages / layout
 \documentclass[
-    pdf,
-    10pt,
-    xcolor={svgnames},
-    %hyperref={colorlinks, citecolor=Cyan, linkcolor=Cyan, urlcolor=Cyan}
-  ]{beamer}
+  %aspectratio=169,
+  pdf,
+  10pt,
+  xcolor={svgnames},
+  %hyperref={colorlinks, citecolor=Cyan, linkcolor=Cyan, urlcolor=Cyan}
+]{beamer}
 %\usetheme{Copenhagen}
 \usetheme{Madrid}
 \usecolortheme{beaver}
@@ -394,7 +395,7 @@
     \[
       \mc{J}(\vec{m})
       = \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-      + \frac{1}{2} \| \mc{C}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
+      + \frac{1}{2} \| \mc{C}_{\rm pr}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
     \]
   \end{block}
   \pause
@@ -402,7 +403,7 @@
   \begin{align*}
     \mc{L}(\vec{m}, \vec{u}, \vec{v})
     &= \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-    + \frac{1}{2} \| \mc{C}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2 
+    + \frac{1}{2} \| \mc{C}_{\rm pr}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2 
     + \int_{\Gamma_s} \beta^{-1} (\vec{u} - \vec{h}) \vdot \vec{v} \dd{s} \\
     &+ \int_{\Gamma_b} \delta^{-1} (\mat{T} \vec{u} - \vec{m}) \vdot \vec{v}
     \dd{s} 
@@ -410,6 +411,40 @@
   \end{align*}
   \textbf{Procedure:} Obtain $\vec{m}$ by enforcing $\mc{L}_\vec{m}
   = \mc{L}_\vec{u} = \mc{L}_\vec{v} = 0$.
+  \pause
+  \begin{block}{Choice of Prior:}
+    In our case, we choose $\mc{C}_{\rm pr} = \mc{A}^{-2} = (-\gamma \Delta
+    + \delta \mat{I})^{-2}$.
+  \end{block}
+\end{frame}
+\begin{frame}
+  \frametitle{Returning to Fault Inversion}
+  \textbf{Slight Wrinkle:} Our parameter-to-observable map is affine.
+  \begin{block}{}
+    We want to minimize
+    \[
+      \mc{J}(\vec{m})
+      = \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
+      + \frac{1}{2} \| \mc{C}_{\rm pr}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
+    \]
+  \end{block}
+  Define:
+  \begin{align*}
+    \mc{L}(\vec{m}, \vec{u}, \vec{v})
+    &= \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
+    + \frac{1}{2} \| \mc{C}_{\rm pr}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2 
+    + \int_{\Gamma_s} \beta^{-1} (\vec{u} - \vec{h}) \vdot \vec{v} \dd{s} \\
+    &+ \int_{\Gamma_b} \delta^{-1} (\mat{T} \vec{u} - \vec{m}) \vdot \vec{v}
+    \dd{s} 
+    + \int_\Omega \vec{\e}(\vec{u}) : \mathbb{C}[\vec{\e}(\vec{v})] \dd{\vec{x}}
+  \end{align*}
+  \textbf{Procedure:} Obtain $\vec{m}$ by enforcing $\mc{L}_\vec{m}
+  = \mc{L}_\vec{u} = \mc{L}_\vec{v} = 0$.
+  \begin{block}{Choice of Prior:}
+    In our case, we choose $\mc{C}_{\rm pr} = \mc{A}^{-2} = (-\gamma \Delta
+    + \delta \mat{I})^{-2}$.
+  \end{block}
+  \blfootnote{\fullcite{Stuart2010}}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -520,29 +555,238 @@
 
 \begin{frame}
   \frametitle{Parameter space dimensionality reduction}
+  %\vspace{-2em}
+  Recall the boundary condition describing the inversion parameter
+  \eqref{eq:elast_strong_e}
+  \[
+    \delta \mat{T}(\vec{\sigma}(\vec{u}) \vec{n}) + \mat{T}\vec{u}
+    = \vec{m}
+    , \quad \text{on } \Gamma_b \subset \R^2
+  \]
+  By the definition of $\mat{T}$:
+  \[
+    \vec{m} = \begin{pmatrix} m_x \\ 0 \\ m_z \end{pmatrix}
+  \]
+  Construct a second finite element space $\mc{V}_h'$ for $\Gamma_b$ and instead
+  choose $\vb{m}, \vb{m}_0 \in (\mc{V}_h', \inp{\cdot}{\cdot}_{L^2}) \cong
+  (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p})$.
+  \pause 
+  \begin{itemize}[<+->]
+    \item FEniCS data structures not very interoporable over mixed dimensions.
+    \item Bijective maps between degrees of freedom and vertices are supported
+      only for 1st order Lagrange elements.
+    \item Need to build custom projector between mixed dimensional topologies
+      and function spaces (Special thanks to Tucker Hartland from UC Merced).
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Symmetry: Adjoints want to kill you}
+  \frametitle{Symmetry: Mass matrices want to kill you}
+  For $T: (\mc{X}, \inp{\cdot}{\cdot}_\mc{X}) \to (\mc{Y},
+  \inp{\cdot}{\cdot}_\mc{Y})$, the adjoint $T^*$ is defined by the identity:
+  \[
+    \inp{x}{T^*y}_\mc{X} = \inp{Tx}{y}_\mc{Y}
+    , \quad \forall (x,y) \in \mc{X} \times \mc{Y}
+  \]
+  Hence, in our setting, $(\cdot)^\T \neq (\cdot)^*$!
+  \pause
+  Consider the parameter-to-observable map:
+  \[
+    \mc{G}:
+    (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p}) \to (\R^q, \inp{\cdot}{\cdot})
+  \]
+  Since
+  \[
+    \inp{\mc{G}\vb{x}}{\vb{y}}
+    = \vb{x}^\T \mc{G}^\T \vb{y}
+    = \vb{x}^\T \mat{M}_p \mat{M}_p^{-1} \mc{G}^\T  \vb{y}
+    = \inp{\vb{x}}{\mat{M}_p^{-1} \mc{G}^\T \vb{y}}
+  \]
+  So
+  \[
+    \mc{G}^* = \mat{M}_p^{-1}\mc{G}^\T
+  \]
+  \pause
+  \vspace{-1em}
+  \begin{alertblock}{Note:}
+    There are two mass matrices, $\mat{M}$ and $\mat{M}_p$. Thankfully, only
+    $\mat{M}_p$ is necessary.
+  \end{alertblock}
 \end{frame}
 
 \begin{frame}
   \frametitle{Sparsity: Matrices induced by differential operators}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.75\textwidth]{./resources/bilaplacian-heatmap}
+  \end{figure}
+\end{frame}
+\begin{frame}
+  \frametitle{Sparsity: Matrices induced by differential operators}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.75\textwidth]{./resources/bilaplacian-heatmap-rect}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{Sparsity: Observations}
+  \begin{align*}
+    \mat{C}_{\rm post}
+    &= 
+    \left(
+      \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G} + \mat{C}_{\rm pr}^{-1}
+    \right) \\
+    &=
+    \mat{C}_{\rm pr}^{1/2}
+    \left(
+      \mat{C}_{\rm pr}^{1/2}
+      \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G} 
+      \mat{C}_{\rm pr}^{1/2}
+      + \mat{I}
+    \right) 
+    \mat{C}_{\rm pr}^{1/2} \\
+    &=
+    \mat{C}_{\rm pr}^{1/2}
+    \left(
+      \tilde{\mat{H}}_{\rm misfit} + \mat{I}
+    \right) 
+    \mat{C}_{\rm pr}^{1/2}
+  \end{align*}
+  \pause
+  Recall:
+  \[
+    \mc{G}:
+    (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p}) \to (\R^q, \inp{\cdot}{\cdot})
+  \]
+  \begin{block}{Note:}
+    Observations are sparse, so $q << m$. Thus $\tilde{\mat{H}}_{\rm misfit}$ is
+    low rank.
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  Construct:
+  \[
+    \tilde{\mat{H}}_{\rm misfit}
+    = \mat{V}_r \mat{\Lambda}_r \mat{V}_r^*
+    + \mc{O}\left( \sum_{k=r+1}^m \lambda_k \right)
+  \]
+  \pause
+  Via the Sherman-Morrison-Woodbury formula:
+  \begin{align*}
+    \mat{D}_r
+    &=
+    {\rm Diag}\left(
+      \frac{\lambda_1}{1+\lambda_1}, \cdots, \frac{\lambda_r}{1+\lambda_r}
+    \right) \\
+    \left(
+      \tilde{\mat{H}}_{\rm misfit} + \mat{I}
+    \right)^{-1}
+    &= 
+    \mat{I} - \mat{V}_r \mat{D}_r \mat{V}_r^*
+    + \mc{O}\left( \sum_{k=r+1}^m \frac{\lambda_k}{1+\lambda_k} \right) \\
+    &\approx
+    \mat{I} - \mat{V}_r \mat{D}_r \mat{V}_r^*
+  \end{align*}
+  \pause
+  Hence:
+  \[
+    \mat{C}_{\rm post}
+    = 
+    \mat{C}_{\rm pr} 
+    - \mat{C}_{\rm pr}^{1/2} \mat{V}_r \mat{D}_r \mat{V}_r^* \mat{C}_{\rm pr}^{1/2}
+  \]
+\end{frame}
+\begin{frame}
+  Construct:
+  \[
+    \tilde{\mat{H}}_{\rm misfit}
+    = \mat{V}_r \mat{\Lambda}_r \mat{V}_r^*
+    + \mc{O}\left( \sum_{k=r+1}^m \lambda_k \right)
+  \]
+  Via the Sherman-Morrison-Woodbury formula:
+  \begin{align*}
+    \mat{D}_r
+    &=
+    {\rm Diag}\left(
+      \frac{\lambda_1}{1+\lambda_1}, \cdots, \frac{\lambda_r}{1+\lambda_r}
+    \right) \\
+    \left(
+      \tilde{\mat{H}}_{\rm misfit} + \mat{I}
+    \right)^{-1}
+    &= 
+    \mat{I} - \mat{V}_r \mat{D}_r \mat{V}_r^*
+    + \mc{O}\left( \sum_{k=r+1}^m \frac{\lambda_k}{1+\lambda_k} \right) \\
+    &\approx
+    \mat{I} - \mat{V}_r \mat{D}_r \mat{V}_r^*
+  \end{align*}
+  Hence:
+  \[
+    \mat{C}_{\rm post}
+    = 
+    \mat{C}_{\rm pr} 
+    - \mat{C}_{\rm pr}^{1/2} \mat{V}_r \mat{D}_r \mat{V}_r^* \mat{C}_{\rm pr}^{1/2}
+  \]
+  \blfootnote{\fullcite{BuiThanh2013}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sampling from resulting distributions}
+  Note, in order to draw samples from $\mc{N}(\vb{m}, \mat{C})$:
+  \begin{itemize}
+    \item Find $\mat{L}$ where $\mat{C} = \mat{L} \mat{L}^*$
+    \item Sample $n \in \mc{N}(\vb{0}, \mat{I})$.
+    \item Construct sample $\vb{s}$ as:
+      \[
+        \vb{s} = \vb{m} + \mat{L} \vb{n}
+      \]
+  \end{itemize}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
+\begin{frame}
+  \frametitle{Results}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.49\textwidth]{./resources/prior_sample}
+    \includegraphics[width=0.49\textwidth]{./resources/posterior_sample}
+  \end{figure}
+\end{frame}
+\begin{frame}
+  \frametitle{Results}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.49\textwidth]{./resources/true_param}
+    \includegraphics[width=0.49\textwidth]{./resources/posterior_sample}
+  \end{figure}
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Discussion and Future Work
+%%% Future Work
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Discussion and Future Work}
+\section{Future Work}
+\begin{frame}
+  \frametitle{Future Work}
+  This problem is intended as a model problem for future uncertainty
+  quantification endavors. This problem has three interesting qualities:
+  \begin{itemize}
+    \item It's a reasonable approximation to well-studied physical problem.
+    \item Mixed dimensional formulation in topology and function space.
+    \item It's posterior is provably Gaussian, hence a priori analysis is
+      possible.
+  \end{itemize}
+  The intention is to use this as an additional example for work in
+  \begin{itemize}
+    \item Different criteria for optimal experimental design
+    \item Hyper-Differential Sensitivity Analysis
+  \end{itemize}
+  \blfootnote{\fullcite{Alexanderian2021}}
+  \blfootnote{\fullcite{Sunseri2020}}
+\end{frame}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
