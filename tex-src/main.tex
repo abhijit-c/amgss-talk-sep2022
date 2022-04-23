@@ -158,7 +158,6 @@
     \includegraphics[width=0.55\textwidth]{./resources/triangle_paraview}
     %\includegraphics[width=\textwidth]{./resources/subduction_zone}
   \end{figure}
-  For the sake of modeling convienience, assume:
   \begin{itemize}[<+->]
     \item \textbf{Governing PDE} (forward model): Linear elasticity
     \item \textbf{Uncertain parameter}: Displacement on fault plane
@@ -168,17 +167,20 @@
 \end{frame}
 \begin{frame}
   \frametitle{Forward Model}
-  \begin{equation}
+  \begin{equation*}
     -\nabla \cdot \bs \sigma(\bs u) = \bs 0 \text{ in } \Omega,
-  \end{equation}
+  \end{equation*}
   where:
   \begin{itemize}
     \item $\vec{\sigma}(\vec{u}) = \mathbb{C} \vec{\varepsilon}(\vec{u})$ with 
+      \bigskip
     \begin{itemize}
       \item $\mathbb{C}[\vec{\e}] = 2\mu \vec{\e} + \lambda \tr(\vec{\e})
         \mat{I}$ the fourth-order linear elasticity tensor:
+      \bigskip
       \item $\vec{\e}(\vec{u}) = \frac{1}{2} \left[ \grad \vec{u} + (\grad
         \vec{u})^\T \right]$ the strain tensor.
+      \bigskip
     \end{itemize}
   \item $\mu$ and $\lambda$ are known as the L\'{a}me constants.
   \end{itemize}
@@ -222,6 +224,10 @@
     \item \eqref{eq:elast_strong_e} can be understood as a regularized Dirichlet
       condition.
   \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Mesh}
 \end{frame}
 
 \begin{frame}
@@ -280,6 +286,7 @@
     \item $\vec{u}(\vec{m})$ is given by the forward model.
     \item $\mc{B}: (L^2(\Omega))^3 \to \R^N$ is an observation operator.
     \item $\obs \in \R^N$ where $N$ is the number of data points.
+    \item $\mc{A}$ is some regularization operator.
   \end{itemize}
   \pause
   If we let $\mc{S}$ be the forward model operator, i.e. $\vec{u} = \mc{S}
@@ -310,7 +317,7 @@
         \obs = \mat{F} \vb{m} + \vb*{\eta},
         \quad \vb*{\eta} \sim \mc{N}(\vb{0}, \mat{\Gamma}_{\rm noise})
       \]
-    \item Posterior is therefore Gaussian with:
+    \item Gaussian posterior with:
       \[
         \vb{m} | \mathbf{u}^{\rm obs} 
         \sim \mc{N}(\vb{m}_{\rm post} , \vb{\Gamma}_{\rm post})
@@ -332,12 +339,12 @@
         \right)^{-1} \\
       \end{align*}
   \end{itemize}
-  Corresponds to
-  \(
-    \mc{J}(\vb{m})
-    = \frac{1}{2} \| \mc{F}\vb{m} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-    + \frac{1}{2} \| \vb{m} - \vb{m}_{\rm pr}\|_{\vb{\Gamma}_{\rm pr}^{-1}}^2
-  \).
+  %Corresponds to
+  %\(
+  %  \mc{J}(\vb{m})
+  %  = \frac{1}{2} \| \mc{F}\vb{m} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
+  %  + \frac{1}{2} \| \vb{m} - \vb{m}_{\rm pr}\|_{\vb{\Gamma}_{\rm pr}^{-1}}^2
+  %\).
 \end{frame}
 \begin{frame}
   \frametitle{Bayesian Inversion in Infinite Dimensions}
@@ -355,7 +362,7 @@
         \obs = \mc{F} \vec{m} + \vb*{\eta},
         \quad \vb*{\eta} \sim \mc{N}(\vb{0}, \mat{\Gamma}_{\rm noise})
       \]
-    \item The pair $(\vec{m}, \obs)$ is jointly Gaussian with:
+    \item Gaussian posterior:
       \[
         \mu^{\obs}_{\rm post}
         =
@@ -378,12 +385,12 @@
         \right)^{-1} \\
       \end{align*}
   \end{itemize} \vspace{-1em}
-  Corresponds to
-  \(
-    \mc{J}(\vec{m})
-    = \frac{1}{2} \| \mc{F}\vec{m} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-    + \frac{1}{2} \| \mc{C}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
-  \).
+  %Corresponds to
+  %\(
+  %  \mc{J}(\vec{m})
+  %  = \frac{1}{2} \| \mc{F}\vec{m} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
+  %  + \frac{1}{2} \| \mc{C}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
+  %\).
 \end{frame}
 
 \begin{frame}
@@ -391,7 +398,7 @@
   \textbf{Slight Wrinkle:} Our parameter-to-observable map is affine.
   \pause
   \begin{block}{}
-    We want to minimize
+    To find $\vec{m}_{\rm post}$, need to minimize:
     \[
       \mc{J}(\vec{m})
       = \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
@@ -409,7 +416,7 @@
     \dd{s} 
     + \int_\Omega \vec{\e}(\vec{u}) : \mathbb{C}[\vec{\e}(\vec{v})] \dd{\vec{x}}
   \end{align*}
-  \textbf{Procedure:} Obtain $\vec{m}$ by enforcing $\mc{L}_\vec{m}
+  \textbf{Procedure:} Obtain $\vec{m}_{\rm post}$ by enforcing $\mc{L}_\vec{m}
   = \mc{L}_\vec{u} = \mc{L}_\vec{v} = 0$.
   \pause
   \begin{block}{Choice of Prior:}
@@ -438,7 +445,7 @@
     \dd{s} 
     + \int_\Omega \vec{\e}(\vec{u}) : \mathbb{C}[\vec{\e}(\vec{v})] \dd{\vec{x}}
   \end{align*}
-  \textbf{Procedure:} Obtain $\vec{m}$ by enforcing $\mc{L}_\vec{m}
+  \textbf{Procedure:} Obtain $\vec{m}_{\rm post}$ by enforcing $\mc{L}_\vec{m}
   = \mc{L}_\vec{u} = \mc{L}_\vec{v} = 0$.
   \begin{block}{Choice of Prior:}
     In our case, we choose $\mc{C}_{\rm pr} = \mc{A}^{-2} = (-\gamma \Delta
@@ -478,9 +485,9 @@
           & \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \mat{B} & \mat{A}^* \\
           -\mat{C} & \mat{A} & 
         \end{bmatrix}
-        \begin{bmatrix} \vb{m} \\ \vb{u} \\ \vb{v} \end{bmatrix}
+        \begin{bmatrix} \vb{m}_{\rm post} \\ \vb{u} \\ \vb{v} \end{bmatrix}
         = \begin{bmatrix}
-          \mat{C}_{\rm pr}^{-1} \vb{m}_0 \\ 
+          \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr} \\ 
           \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \obs \\
           \mat{D} \vb{h}
         \end{bmatrix}
@@ -510,9 +517,9 @@
        & \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \mat{B} & \mat{A}^* \\
       -\mat{C} & \mat{A} & 
     \end{bmatrix}
-    \begin{bmatrix} \vb{m} \\ \vb{u} \\ \vb{v} \end{bmatrix}
+    \begin{bmatrix} \vb{m}_{\rm post} \\ \vb{u} \\ \vb{v} \end{bmatrix}
     = \begin{bmatrix}
-      \mat{C}_{\rm pr}^{-1} \vb{m}_0 \\ 
+      \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr} \\ 
       \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \obs \\
       \mat{D} \vb{h}
     \end{bmatrix}
@@ -521,9 +528,9 @@
   \[
     \left(
       \mat{C}_{\rm pr}^{-1} + \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G}
-    \right)\vb{m}
+    \right)\vb{m}_{\rm post}
     = \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \left( \vb{g} + \obs \right)
-    + \mat{C}_{\rm pr}^{-1} \vb{m}_0
+    + \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr}
   \]
 \end{frame}
 
@@ -537,7 +544,7 @@
     =
     \left[
       \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \left( \vb{g} + \obs \right)
-      + \mat{C}_{\rm pr}^{-1} \vb{m}_0
+      + \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr}
     \right]
   \]
   How do we make this computation tractable?
@@ -554,7 +561,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Parameter space dimensionality reduction}
+  \frametitle{The discretized parameter space}
   %\vspace{-2em}
   Recall the boundary condition describing the inversion parameter
   \eqref{eq:elast_strong_e}
@@ -568,7 +575,7 @@
     \vec{m} = \begin{pmatrix} m_x \\ 0 \\ m_z \end{pmatrix}
   \]
   Construct a second finite element space $\mc{V}_h'$ for $\Gamma_b$ and instead
-  choose $\vb{m}, \vb{m}_0 \in (\mc{V}_h', \inp{\cdot}{\cdot}_{L^2}) \cong
+  choose $\vb{m}, \vb{m}_{\rm pr} \in (\mc{V}_h', \inp{\cdot}{\cdot}_{L^2}) \cong
   (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p})$.
   \pause 
   \begin{itemize}[<+->]
@@ -581,7 +588,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Symmetry: Mass matrices want to kill you}
+  \frametitle{Symmetry: Dealing with the inner product}
   For $T: (\mc{X}, \inp{\cdot}{\cdot}_\mc{X}) \to (\mc{Y},
   \inp{\cdot}{\cdot}_\mc{Y})$, the adjoint $T^*$ is defined by the identity:
   \[
@@ -660,7 +667,7 @@
     (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p}) \to (\R^q, \inp{\cdot}{\cdot})
   \]
   \begin{block}{Note:}
-    Observations are sparse, so $q << m$. Thus $\tilde{\mat{H}}_{\rm misfit}$ is
+    Observations are sparse, so $q \ll m$. Thus $\tilde{\mat{H}}_{\rm misfit}$ is
     low rank.
   \end{block}
 \end{frame}
