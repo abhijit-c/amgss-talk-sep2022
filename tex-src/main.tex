@@ -24,7 +24,7 @@
 
 \newcommand\blfootnote[1]{%
   \begingroup
-  \renewcommand\thefootnote{}\footnote{#1}%
+  \renewcommand\thefootnote{}\footnote{\scriptsize #1}%
   \addtocounter{footnote}{-1}%
   \endgroup
 }
@@ -226,8 +226,20 @@
   \end{itemize}
 \end{frame}
 
+%\begin{frame}
+%  \frametitle{Mesh}
+%  \begin{figure}
+%    \centering
+%    \includegraphics[width=0.5\textwidth]{./resources/mesh_side}
+%  \end{figure}
+%\end{frame}
 \begin{frame}
   \frametitle{Mesh}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.49\textwidth]{./resources/mesh_bot}
+    \includegraphics[width=0.49\textwidth]{./resources/mesh_top}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -549,7 +561,7 @@
   \]
   How do we make this computation tractable?
   \pause
-  \begin{itemize}
+  \begin{itemize}[<+->]
     \item Exploit the dimensionality reduction in the parameter space
     \item Use symmetry aware solvers
     \item Leverage sparsity of 
@@ -559,10 +571,35 @@
       \end{itemize}
   \end{itemize}
 \end{frame}
+\begin{frame}
+  \frametitle{Tractability of Computation}
+  \[
+    \underbrace{\left[
+        \mat{C}_{\rm pr}^{-1} + \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G}
+    \right]}_{\mat{C}_{\rm post}^{-1}}
+    \vb{m}_{\rm post}
+    =
+    \left[
+      \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \left( \vb{g} + \obs \right)
+      + \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr}
+    \right]
+  \]
+  How do we make this computation tractable?
+  \begin{itemize}
+    \item Exploit the dimensionality reduction in the parameter space
+    \item Use symmetry aware solvers
+    \item Leverage sparsity of 
+      \begin{itemize}
+        \item matrices induced by differential operators
+        \item observations
+      \end{itemize}
+  \end{itemize}
+  \blfootnote{\fullcite{FEniCS}}
+  \blfootnote{\fullcite{VillaPetraGhattas21}}
+\end{frame}
 
 \begin{frame}
   \frametitle{The discretized parameter space}
-  %\vspace{-2em}
   Recall the boundary condition describing the inversion parameter
   \eqref{eq:elast_strong_e}
   \[
@@ -577,8 +614,7 @@
   Construct a second finite element space $\mc{V}_h'$ for $\Gamma_b$ and instead
   choose $\vb{m}, \vb{m}_{\rm pr} \in (\mc{V}_h', \inp{\cdot}{\cdot}_{L^2}) \cong
   (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p})$.
-  \pause 
-  \begin{itemize}[<+->]
+  \begin{itemize}
     \item FEniCS data structures not very interoporable over mixed dimensions.
     \item Bijective maps between degrees of freedom and vertices are supported
       only for 1st order Lagrange elements.
@@ -770,19 +806,29 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 \begin{frame}
-  \frametitle{Results}
+  \frametitle{MAP Estimation vs. True Parameter}
   \begin{figure}
     \centering
-    \includegraphics[width=0.49\textwidth]{./resources/prior_sample}
-    \includegraphics[width=0.49\textwidth]{./resources/posterior_sample}
+    \includegraphics[width=0.48\textwidth]{./resources/m_true}
+    \includegraphics[width=0.48\textwidth]{./resources/map_m}
   \end{figure}
 \end{frame}
 \begin{frame}
-  \frametitle{Results}
+  \frametitle{Prior Samples}
   \begin{figure}
     \centering
-    \includegraphics[width=0.49\textwidth]{./resources/true_param}
-    \includegraphics[width=0.49\textwidth]{./resources/posterior_sample}
+    \includegraphics[width=0.48\textwidth]{./resources/prior_sample_1}
+    \includegraphics[width=0.48\textwidth]{./resources/prior_sample_2}
+    %\includegraphics[width=0.30\textwidth]{./resources/prior_sample_3}
+  \end{figure}
+\end{frame}
+\begin{frame}
+  \frametitle{Posterior Samples}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.48\textwidth]{./resources/post_sample_1}
+    \includegraphics[width=0.48\textwidth]{./resources/post_sample_2}
+    %\includegraphics[width=0.30\textwidth]{./resources/post_sample_3}
   \end{figure}
 \end{frame}
 
