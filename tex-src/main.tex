@@ -48,15 +48,19 @@
 \usepackage{enumerate}
 \usepackage{siunitx} %\sisetup{inter-unit-product =$\cdot$}
 \usepackage{multicol}
+\usepackage{todonotes}
 
 \newtheorem*{lemma*}{Lemma}
 \newtheorem*{theorem*}{Theorem}
+\newtheorem*{definition*}{Definition}
 
 %% general package aliases
 \newcommand{\bs}{\boldsymbol}
 \def\ds{\displaystyle}
 \newcommand{\mb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
 \newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mcb}[1]{\boldsymbol{\mathcal{#1}}}
 \newcommand{\ms}[1]{\mathscr{#1}}
 %% Set aliases
 \newcommand{\N}{\mathbb{N}}
@@ -84,6 +88,8 @@
 \newcommand{\mbu}[1]{\ensuremath{\mathbf{#1}}}
 \newcommand{\obs}{\mathbf{u}^{\rm obs}}
 
+\newcommand{\Gnoise}{\mat{\Gamma}_{\rm noise}}
+
 % Creates section subdivider at beginning of each section.
 \AtBeginSection[]
 {
@@ -94,9 +100,10 @@
 }
  
 \title[%
-  Fault slip inversion via Bayesian inference
+  Eigenvalue Sensitivities for Sensitivity Analysis
 ]{%
-  Infinite-dimensional Bayesian inversion for fault slip from surface measurements
+  Computing Eigenvalue Sensitivities for Sensitivity Analysis of the Information
+  Gain in Bayesian Linear Inverse Problems
 }
 \author[Chowdhary, Alexanderian]{%
   Abhijit Chowdhary and Alen Alexanderian
@@ -108,7 +115,7 @@
 \date[AMGSS 2022]{\today}
 
 \begin{document}
- 
+
 \frame{ \titlepage \scriptsize{ Work done through NSF-DMS-2111044 } }
 
 \begin{frame}
@@ -162,7 +169,7 @@
     \item \textbf{Governing PDE} (forward model): Linear elasticity
     \item \textbf{Uncertain parameter}: Displacement on fault plane
     \item \textbf{Inverse Problem}: Given measurements of surface deformation
-      $\obs$ reconstruct fault plane displacement.
+          $\obs$ reconstruct fault plane displacement.
   \end{itemize}
 \end{frame}
 \begin{frame}
@@ -172,57 +179,48 @@
   \end{equation*}
   where:
   \begin{itemize}
-    \item $\vec{\sigma}(\vec{u}) = \mathbb{C} \vec{\varepsilon}(\vec{u})$ with 
-      \bigskip
-    \begin{itemize}
-      \item $\mathbb{C}[\vec{\e}] = 2\mu \vec{\e} + \lambda \tr(\vec{\e})
-        \mat{I}$ the fourth-order linear elasticity tensor:
-      \bigskip
-      \item $\vec{\e}(\vec{u}) = \frac{1}{2} \left[ \grad \vec{u} + (\grad
-        \vec{u})^\T \right]$ the strain tensor.
-      \bigskip
-    \end{itemize}
-  \item $\mu$ and $\lambda$ are known as the L\'{a}me constants.
+    \item $\vec{\sigma}(\vec{u}) = \mathbb{C} \vec{\varepsilon}(\vec{u})$ with
+          \bigskip
+          \begin{itemize}
+            \item $\mathbb{C}[\vec{\e}] = 2\mu \vec{\e} + \lambda \tr(\vec{\e})
+                    \mat{I}$ the fourth-order linear elasticity tensor:
+                  \bigskip
+            \item $\vec{\e}(\vec{u}) = \frac{1}{2} \left[ \grad \vec{u} + (\grad
+                      \vec{u})^\T \right]$ the strain tensor.
+                  \bigskip
+          \end{itemize}
+    \item $\mu$ and $\lambda$ are the L\'{a}me constants.
   \end{itemize}
   \blfootnote{\fullcite{McCormack2018}}
 \end{frame}
 \begin{frame}
   \frametitle{Forward Model}
-  \begin{subequations}\label{eq:elast_strong}
-    \begin{align}
-      - \grad \left[ 
-        \mu(\grad \vec{u} + (\grad \vec{u})^\T)
-        + \lambda \div \vec{u} \mat{I}
+  \begin{align*}
+    - \grad \left[
+      \mu(\grad \vec{u} + (\grad \vec{u})^\T)
+      + \lambda \div \vec{u} \mat{I}
       \right]
-      &=
-      \label{eq:elast_strong_a}
-      \vec{0} \quad \text{in } \Omega, \\
-      \label{eq:elast_strong_b}
-      \vec{\sigma}(\vec{u}) \vec{n} 
-      &= 
-      \vec{0} \quad \text{on } \Gamma_t \\
-      \label{eq:elast_strong_c}
-      \vec{u} + \beta \vec{\sigma}(\vec{u}) \vec{n}
-      &=
-      \vec{h} \quad \text{on } \Gamma_s \\
-      \label{eq:elast_strong_d}
-      \vec{u} \vdot \vec{n} 
-      &=
-      0 \quad \text{on } \Gamma_b \\
-      \label{eq:elast_strong_e}
-      \delta \mat{T}(\vec{\sigma}(\vec{u})\vec{n}) + \mat{T}\vec{u}
-      &=
-      \vec{m} \quad \text{on } \Gamma_b
-    \end{align}
-  \end{subequations}
+     & =
+    \vec{0} \quad \text{in } \Omega,  \\
+    \vec{\sigma}(\vec{u}) \vec{n}
+     & =
+    \vec{0} \quad \text{on } \Gamma_t \\
+    \vec{u} + \beta \vec{\sigma}(\vec{u}) \vec{n}
+     & =
+    \vec{h} \quad \text{on } \Gamma_s \\
+    \vec{u} \vdot \vec{n}
+     & =
+    0 \quad \text{on } \Gamma_b       \\
+    \delta \mat{T}(\vec{\sigma}(\vec{u})\vec{n}) + \mat{T}\vec{u}
+     & =
+    \vec{m} \quad \text{on } \Gamma_b
+  \end{align*}
   \begin{itemize}[<+->]
     \item $\mat{T}$ is the tangential operator $\mat{T} \vec{u} = (\mat{I}
-      - \vec{n} \otimes \vec{n}) \vec{u} = \vec{u} - (\vec{n}^\T \vec{u})
-      \vec{n}$.
-    \item The right hand side of \eqref{eq:elast_strong_e} is the displacement
-      on the fault plane that is being inverted for.
-    \item \eqref{eq:elast_strong_e} can be understood as a regularized Dirichlet
-      condition.
+            - \vec{n} \otimes \vec{n}) \vec{u} = \vec{u} - (\vec{n}^\T \vec{u})
+            \vec{n}$.
+    \item $\vec{m}$ is the displacement
+          on the fault plane that is being inverted for.
   \end{itemize}
 \end{frame}
 
@@ -259,30 +257,9 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Weak Formulation}
-  Define:
-  \[
-    \vec{V} \coloneqq
-    \{ 
-      \vec{u} \in H^1(\Omega)^3 
-      : \vec{u} \vdot \vec{n} = 0 \text{ on } \Gamma_b
-    \}
-  \]
-  Then the weak formulation of the forward model is given by:
-  \begin{multline}
-    \int_{\Gamma_s} \beta^{-1} (\vec{u} - \vec{h}) \vdot \vec{v} \dd{s}
-    + \int_{\Gamma_b} \delta^{-1} (\mat{T} \vec{u} - \vec{m}) \vdot \vec{v}
-    \dd{s} \\
-    + \int_\Omega \vec{\e}(\vec{u}) : \mathbb{C}[\vec{\e}(\vec{v})] \dd{\vec{x}}
-    = 0,
-    \quad \forall v \in \vec{V}
-  \end{multline}
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Bayesian Inversion Setting
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Infinite-Dimensional Inverse Problem Setting}
 \begin{frame}
   \frametitle{The Deterministic Inverse Problem}
@@ -290,74 +267,28 @@
   optimization problem:
   \[
     \mc{J}(\vec{m})
-    = \frac{1}{2} \| \mc{B}\vec{u}(\vec{m}) - \obs \|^2
-    + \frac{1}{2} \| \mc{A}\vec{m} \|^2
+    = \frac{1}{2} \| \mcb{B}\vec{u}(\vec{m}) - \obs \|^2
+    + \frac{1}{2} \| \mc{R}\vec{m} \|^2
   \]
   where $\vec{u}$ is given by the solution of the linear elasticity equation.
   \begin{itemize}
     \item $\vec{u}(\vec{m})$ is given by the forward model.
-    \item $\mc{B}: (L^2(\Omega))^3 \to \R^N$ is an observation operator.
+    \item $\mcb{B}: (L^2(\Omega))^3 \to \R^N$ is an observation operator.
     \item $\obs \in \R^N$ where $N$ is the number of data points.
-    \item $\mc{A}$ is some regularization operator.
+    \item $\mc{R}$ is some regularization operator.
   \end{itemize}
   \pause
-  If we let $\mc{S}$ be the forward model operator, i.e. $\vec{u} = \mc{S}
-  \vec{m}$, and let\footnote{%
+  If we let $\mcb{S}$ be the forward model operator, i.e. $\vec{u} = \mcb{S}
+    \vec{m}$, and let\footnote{%
     In literature, called the {\em parameter-to-observable operator}.
-  } $\mc{F} = \mc{B} \mc{S}$, then:
+  } $\mcb{F} = \mcb{B} \mcb{S}$, then:
   \[
     \mc{J}(\vec{m})
-    = \frac{1}{2} \| \mc{F}\vec{m} - \obs \|^2
-    + \frac{1}{2} \| \mc{A}\vec{m} \|^2
+    = \frac{1}{2} \| \mcb{F}\vec{m} - \obs \|^2
+    + \frac{1}{2} \| \mc{R}\vec{m} \|^2
   \]
 \end{frame}
 
-\begin{frame}
-  \frametitle{Bayesian Inversion in Finite Dimensions}
-  \begin{theorem}[Bayes Theorem in Finite Dimensions]
-    \[
-      \pi_{\rm post}(\vb{m} | \mathbf{u}^{\rm obs})
-      \propto
-      \pi_{\rm like}(\mathbf{u}^{\rm obs} | \vb{m})
-      \pi_{\rm prior}(\vb{m})
-    \]
-  \end{theorem}
-  \begin{itemize}
-    \item Gaussian Prior $\vb{m} \sim \mc{N}(\vb{m}_{\rm pr}, \mat{\Gamma}_{\rm pr})$.
-    \item Additive Gaussian noise
-      \[
-        \obs = \mat{F} \vb{m} + \vb*{\eta},
-        \quad \vb*{\eta} \sim \mc{N}(\vb{0}, \mat{\Gamma}_{\rm noise})
-      \]
-    \item Gaussian posterior with:
-      \[
-        \vb{m} | \mathbf{u}^{\rm obs} 
-        \sim \mc{N}(\vb{m}_{\rm post} , \vb{\Gamma}_{\rm post})
-      \]
-      where:
-      \begin{align*}
-        \vb{m}_{\rm post}
-        &=
-        \vb{\Gamma}_{\rm post}
-        \left(
-          \mat{F}^\T \vb{\Gamma}_{\rm noise}^{-1} \mathbf{u}^{\rm obs}
-          + \vb{\Gamma}_{\rm pr}^{-1} \vb{m}_{\rm pr}
-        \right) \\
-        \vb{\Gamma}_{\rm post}
-        &=
-        \left(
-          \mat{F}^\T \vb{\Gamma}_{\rm noise}^{-1} \mat{F}
-          + \vb{\Gamma}_{\rm pr}^{-1}
-        \right)^{-1} \\
-      \end{align*}
-  \end{itemize}
-  %Corresponds to
-  %\(
-  %  \mc{J}(\vb{m})
-  %  = \frac{1}{2} \| \mc{F}\vb{m} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-  %  + \frac{1}{2} \| \vb{m} - \vb{m}_{\rm pr}\|_{\vb{\Gamma}_{\rm pr}^{-1}}^2
-  %\).
-\end{frame}
 \begin{frame}
   \frametitle{Bayesian Inversion in Infinite Dimensions}
   \begin{theorem}[Bayes Theorem in Infinite Dimensions]
@@ -368,34 +299,34 @@
     \]
   \end{theorem}
   \begin{itemize}
-    \item Gaussian Prior $\vec{m} \sim \mc{N}(\vec{m}_{\rm pr}, \mc{C}_0)$.
+    \item Gaussian Prior $\vec{m} \sim \mc{N}(\vec{m}_{\rm pr}, \mcb{C}_0)$.
     \item Additive Gaussian noise
-      \[
-        \obs = \mc{F} \vec{m} + \vb*{\eta},
-        \quad \vb*{\eta} \sim \mc{N}(\vb{0}, \mat{\Gamma}_{\rm noise})
-      \]
+          \[
+            \obs = \mcb{F} \vec{m} + \vb*{\eta},
+            \quad \vb*{\eta} \sim \mc{N}(\vb{0}, \mat{\Gamma}_{\rm noise})
+          \]
     \item Gaussian posterior:
-      \[
-        \mu^{\obs}_{\rm post}
-        =
-        \mc{N}(\vec{m}_{\rm post} , \mc{C}_{\rm post})
-      \]
-      where:
-      \begin{align*}
-        \vec{m}_{\rm post}
-        &=
-        \mc{C}_{\rm post}
-        \left(
-          \mc{F}^* \vb{\Gamma}_{\rm noise}^{-1} \obs
-          + \mc{C}_{\rm pr}^{-1} \vec{m}_{\rm pr}
-        \right) \\
-        \mc{C}_{\rm post}
-        &=
-        \left(
-          \mc{F}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{F}
-          + \mc{C}_{\rm pr}^{-1}
-        \right)^{-1} \\
-      \end{align*}
+          \[
+            \mu^{\obs}_{\rm post}
+            =
+            \mc{N}(\vec{m}_{\rm post} , \mcb{C}_{\rm post})
+          \]
+          where:
+          \begin{align*}
+            \vec{m}_{\rm post}
+             & =
+            \mcb{C}_{\rm post}
+            \left(
+            \mcb{F}^* \vb{\Gamma}_{\rm noise}^{-1} \obs
+            + \mcb{C}_{\rm pr}^{-1} \vec{m}_{\rm pr}
+            \right)      \\
+            \mcb{C}_{\rm post}
+             & =
+            \left(
+            \mcb{F}^* \vb{\Gamma}_{\rm noise}^{-1} \mcb{F}
+            + \mcb{C}_{\rm pr}^{-1}
+            \right)^{-1} \\
+          \end{align*}
   \end{itemize} \vspace{-1em}
   %Corresponds to
   %\(
@@ -405,406 +336,6 @@
   %\).
 \end{frame}
 
-\begin{frame}
-  \frametitle{Returning to Fault Inversion}
-  \textbf{Slight Wrinkle:} Our parameter-to-observable map is affine.
-  \pause
-  \begin{block}{}
-    To find $\vec{m}_{\rm post}$, need to minimize:
-    \[
-      \mc{J}(\vec{m})
-      = \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-      + \frac{1}{2} \| \mc{C}_{\rm pr}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
-    \]
-  \end{block}
-  \pause
-  Define:
-  \begin{align*}
-    \mc{L}(\vec{m}, \vec{u}, \vec{v})
-    &= \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-    + \frac{1}{2} \| \mc{C}_{\rm pr}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2 
-    + \int_{\Gamma_s} \beta^{-1} (\vec{u} - \vec{h}) \vdot \vec{v} \dd{s} \\
-    &+ \int_{\Gamma_b} \delta^{-1} (\mat{T} \vec{u} - \vec{m}) \vdot \vec{v}
-    \dd{s} 
-    + \int_\Omega \vec{\e}(\vec{u}) : \mathbb{C}[\vec{\e}(\vec{v})] \dd{\vec{x}}
-  \end{align*}
-  \textbf{Procedure:} Obtain $\vec{m}_{\rm post}$ by enforcing $\mc{L}_\vec{m}
-  = \mc{L}_\vec{u} = \mc{L}_\vec{v} = 0$.
-  \pause
-  \begin{block}{Choice of Prior:}
-    In our case, we choose $\mc{C}_{\rm pr} = \mc{A}^{-2} = (-\gamma \Delta
-    + \delta \mat{I})^{-2}$.
-  \end{block}
-\end{frame}
-\begin{frame}
-  \frametitle{Returning to Fault Inversion}
-  \textbf{Slight Wrinkle:} Our parameter-to-observable map is affine.
-  \begin{block}{}
-    We want to minimize
-    \[
-      \mc{J}(\vec{m})
-      = \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-      + \frac{1}{2} \| \mc{C}_{\rm pr}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2
-    \]
-  \end{block}
-  Define:
-  \begin{align*}
-    \mc{L}(\vec{m}, \vec{u}, \vec{v})
-    &= \frac{1}{2} \| \mc{B}\vec{u} - \obs \|_{\vb{\Gamma}_{\rm noise}^{-1}}^2
-    + \frac{1}{2} \| \mc{C}_{\rm pr}^{-1/2}(\vec{m}-\vec{m}_{\rm pr}) \|^2 
-    + \int_{\Gamma_s} \beta^{-1} (\vec{u} - \vec{h}) \vdot \vec{v} \dd{s} \\
-    &+ \int_{\Gamma_b} \delta^{-1} (\mat{T} \vec{u} - \vec{m}) \vdot \vec{v}
-    \dd{s} 
-    + \int_\Omega \vec{\e}(\vec{u}) : \mathbb{C}[\vec{\e}(\vec{v})] \dd{\vec{x}}
-  \end{align*}
-  \textbf{Procedure:} Obtain $\vec{m}_{\rm post}$ by enforcing $\mc{L}_\vec{m}
-  = \mc{L}_\vec{u} = \mc{L}_\vec{v} = 0$.
-  \begin{block}{Choice of Prior:}
-    In our case, we choose $\mc{C}_{\rm pr} = \mc{A}^{-2} = (-\gamma \Delta
-    + \delta \mat{I})^{-2}$.
-  \end{block}
-  \blfootnote{\fullcite{Stuart2010}}
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Numerical Discretization and Considerations
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Numerical Discretization and Considerations}
-\begin{frame}
-  \frametitle{FEM Discretization}
-  \begin{itemize}
-    \item Consider finite element space $\mc{V}_h = {\rm Span}(\phi_1, \dots,
-      \phi_n)$.
-    \item $\phi_k$: Lagrange basis functions. 
-    \item For $\vb{f} \in \mc{V}_h$:
-      \[
-        \vb{f} = \sum_{k=1}^n f_k \phi_k
-      \]
-    In particular, construct $\vb{u}, \vb{v}, \vb{m}, \vb{m}_{\rm pr},
-      \vb{h} \in \mc{V}_h$ from $\vec{u}, \vec{v}, \vec{m}, \vec{m}_{\rm pr}$
-      and $\vec{h}$.
-    \item Finite dimensional Hilbert space 
-      \[
-        (\mc{V}_h, \inp{\cdot}{\cdot}_{L^2})
-        \cong 
-        (\R^n, \inp{\cdot}{\cdot}_M),
-        \qquad \inp{\vb{u}}{\vb{v}} = \vb{u}^\T \mat{M} \vb{v}
-      \]
-    \item From the Lagrangian we find
-      \[
-        \begin{bmatrix}
-          \mat{C}_{\rm pr}^{-1} & & -\mat{C}^* \\
-          & \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \mat{B} & \mat{A}^* \\
-          -\mat{C} & \mat{A} & 
-        \end{bmatrix}
-        \begin{bmatrix} \vb{m}_{\rm post} \\ \vb{u} \\ \vb{v} \end{bmatrix}
-        = \begin{bmatrix}
-          \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr} \\ 
-          \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \obs \\
-          \mat{D} \vb{h}
-        \end{bmatrix}
-      \]
-      where $\mat{A} \vb{u} = \mat{C} \vb{m} + \mat{D} \vb{h}$ is the discretized
-      weak form.
-  \end{itemize}
-\end{frame}
-\begin{frame}
-  \frametitle{Reduced Linear System}
-  \begin{block}{Parameter-to-Observable Map}
-    From the discretized weak form we can define:
-    \[
-      \mat{A}\vb{u} = \mat{C} \vb{m} + \mat{D} \vb{h}
-      \implies
-      \mc{F}(\vb{m}) = \mat{B} \mat{A}^{-1} \left[
-        \mat{C} \vb{m} + \mat{D} \vb{h}
-      \right]
-      = \mc{G} \vb{m} + \vb{g}
-    \]
-  \end{block}
-  \pause
-  With this:
-  \[
-    \begin{bmatrix}
-      \mat{C}_{\rm pr}^{-1} & & -\mat{C}^* \\
-       & \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \mat{B} & \mat{A}^* \\
-      -\mat{C} & \mat{A} & 
-    \end{bmatrix}
-    \begin{bmatrix} \vb{m}_{\rm post} \\ \vb{u} \\ \vb{v} \end{bmatrix}
-    = \begin{bmatrix}
-      \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr} \\ 
-      \mat{B}^* \vb{\Gamma}_{\rm noise}^{-1} \obs \\
-      \mat{D} \vb{h}
-    \end{bmatrix}
-  \]
-  can be reduced to
-  \[
-    \left(
-      \mat{C}_{\rm pr}^{-1} + \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G}
-    \right)\vb{m}_{\rm post}
-    = \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \left( \vb{g} + \obs \right)
-    + \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr}
-  \]
-\end{frame}
-
-\begin{frame}
-  \frametitle{Tractability of Computation}
-  \[
-    \underbrace{\left[
-        \mat{C}_{\rm pr}^{-1} + \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G}
-    \right]}_{\mat{C}_{\rm post}^{-1}}
-    \vb{m}_{\rm post}
-    =
-    \left[
-      \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \left( \vb{g} + \obs \right)
-      + \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr}
-    \right]
-  \]
-  How do we make this computation tractable?
-  \pause
-  \begin{itemize}[<+->]
-    \item Exploit the dimensionality reduction in the parameter space
-    \item Use symmetry aware solvers
-    \item Leverage sparsity of 
-      \begin{itemize}
-        \item matrices induced by differential operators
-        \item observations
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-\begin{frame}
-  \frametitle{Tractability of Computation}
-  \[
-    \underbrace{\left[
-        \mat{C}_{\rm pr}^{-1} + \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G}
-    \right]}_{\mat{C}_{\rm post}^{-1}}
-    \vb{m}_{\rm post}
-    =
-    \left[
-      \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \left( \vb{g} + \obs \right)
-      + \mat{C}_{\rm pr}^{-1} \vb{m}_{\rm pr}
-    \right]
-  \]
-  How do we make this computation tractable?
-  \begin{itemize}
-    \item Exploit the dimensionality reduction in the parameter space
-    \item Use symmetry aware solvers
-    \item Leverage sparsity of 
-      \begin{itemize}
-        \item matrices induced by differential operators
-        \item observations
-      \end{itemize}
-  \end{itemize}
-  \blfootnote{\fullcite{FEniCS}}
-  \blfootnote{\fullcite{VillaPetraGhattas21}}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The discretized parameter space}
-  Recall the boundary condition describing the inversion parameter
-  \eqref{eq:elast_strong_e}
-  \[
-    \delta \mat{T}(\vec{\sigma}(\vec{u}) \vec{n}) + \mat{T}\vec{u}
-    = \vec{m}
-    , \quad \text{on } \Gamma_b \subset \R^2
-  \]
-  By the definition of $\mat{T}$:
-  \[
-    \vec{m} = \begin{pmatrix} m_x \\ 0 \\ m_z \end{pmatrix}
-  \]
-  Construct a second finite element space $\mc{V}_h'$ for $\Gamma_b$ and instead
-  choose $\vb{m}, \vb{m}_{\rm pr} \in (\mc{V}_h', \inp{\cdot}{\cdot}_{L^2}) \cong
-  (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p})$.
-  \begin{itemize}
-    \item FEniCS data structures not very interoporable over mixed dimensions.
-    \item Bijective maps between degrees of freedom and vertices are supported
-      only for 1st order Lagrange elements.
-    \item Need to build custom projector between mixed dimensional topologies
-      and function spaces (Special thanks to Tucker Hartland from UC Merced).
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Symmetry: Dealing with the inner product}
-  For $T: (\mc{X}, \inp{\cdot}{\cdot}_\mc{X}) \to (\mc{Y},
-  \inp{\cdot}{\cdot}_\mc{Y})$, the adjoint $T^*$ is defined by the identity:
-  \[
-    \inp{x}{T^*y}_\mc{X} = \inp{Tx}{y}_\mc{Y}
-    , \quad \forall (x,y) \in \mc{X} \times \mc{Y}
-  \]
-  Hence, in our setting, $(\cdot)^\T \neq (\cdot)^*$!
-  \pause
-  Consider the parameter-to-observable map:
-  \[
-    \mc{G}:
-    (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p}) \to (\R^q, \inp{\cdot}{\cdot})
-  \]
-  Since
-  \[
-    \inp{\mc{G}\vb{x}}{\vb{y}}
-    = \vb{x}^\T \mc{G}^\T \vb{y}
-    = \vb{x}^\T \mat{M}_p \mat{M}_p^{-1} \mc{G}^\T  \vb{y}
-    = \inp{\vb{x}}{\mat{M}_p^{-1} \mc{G}^\T \vb{y}}
-  \]
-  So
-  \[
-    \mc{G}^* = \mat{M}_p^{-1}\mc{G}^\T
-  \]
-  \pause
-  \vspace{-1em}
-  \begin{alertblock}{Note:}
-    There are two mass matrices, $\mat{M}$ and $\mat{M}_p$. Thankfully, only
-    $\mat{M}_p$ is necessary.
-  \end{alertblock}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Sparsity: Matrices induced by differential operators}
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.75\textwidth]{./resources/bilaplacian-heatmap}
-  \end{figure}
-\end{frame}
-\begin{frame}
-  \frametitle{Sparsity: Matrices induced by differential operators}
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.75\textwidth]{./resources/bilaplacian-heatmap-rect}
-  \end{figure}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Sparsity: Observations}
-  \begin{align*}
-    \mat{C}_{\rm post}
-    &= 
-    \left(
-      \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G} + \mat{C}_{\rm pr}^{-1}
-    \right) \\
-    &=
-    \mat{C}_{\rm pr}^{1/2}
-    \left(
-      \mat{C}_{\rm pr}^{1/2}
-      \mc{G}^* \vb{\Gamma}_{\rm noise}^{-1} \mc{G} 
-      \mat{C}_{\rm pr}^{1/2}
-      + \mat{I}
-    \right) 
-    \mat{C}_{\rm pr}^{1/2} \\
-    &=
-    \mat{C}_{\rm pr}^{1/2}
-    \left(
-      \tilde{\mat{H}}_{\rm misfit} + \mat{I}
-    \right) 
-    \mat{C}_{\rm pr}^{1/2}
-  \end{align*}
-  \pause
-  Recall:
-  \[
-    \mc{G}:
-    (\R^m, \inp{\cdot}{\cdot}_{\mat{M}_p}) \to (\R^q, \inp{\cdot}{\cdot})
-  \]
-  \begin{block}{Note:}
-    Observations are sparse, so $q \ll m$. Thus $\tilde{\mat{H}}_{\rm misfit}$ is
-    low rank.
-  \end{block}
-\end{frame}
-
-\begin{frame}
-  Construct:
-  \[
-    \tilde{\mat{H}}_{\rm misfit}
-    = \mat{V}_r \mat{\Lambda}_r \mat{V}_r^*
-    + \mc{O}\left( \sum_{k=r+1}^m \lambda_k \right)
-  \]
-  \pause
-  Via the Sherman-Morrison-Woodbury formula:
-  \begin{align*}
-    \mat{D}_r
-    &=
-    {\rm Diag}\left(
-      \frac{\lambda_1}{1+\lambda_1}, \cdots, \frac{\lambda_r}{1+\lambda_r}
-    \right) \\
-    \left(
-      \tilde{\mat{H}}_{\rm misfit} + \mat{I}
-    \right)^{-1}
-    &= 
-    \mat{I} - \mat{V}_r \mat{D}_r \mat{V}_r^*
-    + \mc{O}\left( \sum_{k=r+1}^m \frac{\lambda_k}{1+\lambda_k} \right) \\
-    &\approx
-    \mat{I} - \mat{V}_r \mat{D}_r \mat{V}_r^*
-  \end{align*}
-  \pause
-  Hence:
-  \[
-    \mat{C}_{\rm post}
-    = 
-    \mat{C}_{\rm pr} 
-    - \mat{C}_{\rm pr}^{1/2} \mat{V}_r \mat{D}_r \mat{V}_r^* \mat{C}_{\rm pr}^{1/2}
-  \]
-\end{frame}
-\begin{frame}
-  Construct:
-  \[
-    \tilde{\mat{H}}_{\rm misfit}
-    = \mat{V}_r \mat{\Lambda}_r \mat{V}_r^*
-    + \mc{O}\left( \sum_{k=r+1}^m \lambda_k \right)
-  \]
-  Via the Sherman-Morrison-Woodbury formula:
-  \begin{align*}
-    \mat{D}_r
-    &=
-    {\rm Diag}\left(
-      \frac{\lambda_1}{1+\lambda_1}, \cdots, \frac{\lambda_r}{1+\lambda_r}
-    \right) \\
-    \left(
-      \tilde{\mat{H}}_{\rm misfit} + \mat{I}
-    \right)^{-1}
-    &= 
-    \mat{I} - \mat{V}_r \mat{D}_r \mat{V}_r^*
-    + \mc{O}\left( \sum_{k=r+1}^m \frac{\lambda_k}{1+\lambda_k} \right) \\
-    &\approx
-    \mat{I} - \mat{V}_r \mat{D}_r \mat{V}_r^*
-  \end{align*}
-  Hence:
-  \[
-    \mat{C}_{\rm post}
-    = 
-    \mat{C}_{\rm pr} 
-    - \mat{C}_{\rm pr}^{1/2} \mat{V}_r \mat{D}_r \mat{V}_r^* \mat{C}_{\rm pr}^{1/2}
-  \]
-  \blfootnote{\fullcite{BuiThanh2013}}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Sampling from resulting distributions}
-  Note, in order to draw samples from $\mc{N}(\vb{m}, \mat{C})$:
-  \begin{itemize}
-    \item Find $\mat{L}$ where $\mat{C} = \mat{L} \mat{L}^*$
-    \item Sample $n \in \mc{N}(\vb{0}, \mat{I})$.
-    \item Construct sample $\vb{s}$ as:
-      \[
-        \vb{s} = \vb{m} + \mat{L} \vb{n}
-      \]
-  \end{itemize}
-  \pause
-  Since $\mc{C}_{\rm pr} = \mc{A}^{-2}$, prior is easy. For posterior:
-  \begin{align*}
-    \mat{L}
-    &= 
-    \mat{C}_{\rm pr}^{1/2}
-    (\mat{V}_r \mat{P}_r \mat{V}_r^* + \mat{I})
-    \mat{M_p}^{-1/2} \\
-    \mat{P}_r
-    &=
-    {\rm Diag}\left(
-      \frac{1}{\sqrt{\lambda_1 + 1} - 1}
-    \right)
-  \end{align*}
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Results
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Results}
 \begin{frame}
   \frametitle{MAP Estimation vs. True Parameter}
   \begin{figure}
@@ -833,28 +364,492 @@
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Future Work
+%%% Information Gain as an Objective for UQ
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Future Work}
+\section{Measuring Posterior Uncertainty}
 \begin{frame}
-  \frametitle{Future Work}
-  This problem is intended as a model problem for future uncertainty
-  quantification endavors. This problem has three interesting qualities:
-  \begin{itemize}
-    \item It's a reasonable approximation to well-studied physical problem.
-    \item Mixed dimensional formulation in topology and function space.
-    \item It's posterior is provably Gaussian, hence a priori analysis is
-      possible.
-  \end{itemize}
-  The intention is to use this as an additional example for work in
-  \begin{itemize}
-    \item Different criteria for optimal experimental design
-    \item Hyper-Differential Sensitivity Analysis
-  \end{itemize}
-  \blfootnote{\fullcite{Alexanderian2021}}
+  \begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{./resources/bivariate}
+    \caption{
+      The confidence region corresponding to a linear inverse problem with a
+      bivariate Gaussian posterior.
+    }
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Data-Misfit Hessian}
+  \begin{definition}[Data-Misfit Hessian]
+    The action of the data-misfit Hessian is given by:
+    expressed as:
+    \begin{equation*}
+      \mcb{H} = \mcb{F}^* \mat{\Gamma}_{\rm noise}^{-1} \mcb{F}
+    \end{equation*}
+  \end{definition}
+  \pause
+  \begin{definition}[Prior-Preconditioned Data-Misfit Hessian]
+    \begin{equation*}
+      \tilde{\mcb{H}}
+      = \mcb{C}_{\rm prior}^{1/2} \mcb{H} \mcb{C}_{\rm prior}^{1/2}
+    \end{equation*}
+    Let $\{(\lambda_i, \psi_i)\}_{i=1}^k$ be the dominant eigenpairs of
+    $\tilde{\mcb{H}}$, then:
+    \[
+      \tilde{\mcb{H}} v \approx \sum_{i=1}^k \lambda_i \inp{\psi_i}{v} \psi_i
+    \]
+    is a low rank approximation of $\tilde{\mcb{H}}$.
+  \end{definition}
+\end{frame}
+
+\begin{frame}
+  \frametitle{A Measure of Posterior Uncertainty}
+  \begin{definition}[Kullback-Leibler Divergence]
+    The KL-Divergence from the posterior to the prior quantifies the information
+    gain and in the context of Bayesian linear inverse problems has the form:
+    \begin{align*}
+      \Phi_{\rm KL}
+       & =
+      \frac{1}{2}\left[
+      \log\det(\tilde{\mcb{H}} + \mcb{I})
+      - {\rm trace}\left(
+      \tilde{\mcb{H}}(\mcb{I} + \tilde{\mcb{H}})^{-1}
+      \right)
+      + \norm{
+        \vec{m}_{\rm MAP} - \vec{m}_{\rm pr}
+      }_{\mat{\Gamma}_{\rm noise}^{-1}}^2
+      \right]    \\
+       & \approx
+      \sum_{j=1}^k
+      \frac{1}{2}\left[
+      \log(\lambda_j + 1)
+      - \frac{\lambda_j}{1+\lambda_j}
+      + {\norm{
+        \vec{m}_{\rm MAP} - \vec{m}_{\rm pr}
+      }_{\mat{\Gamma}_{\rm noise}^{-1}}^2}
+      \right]
+    \end{align*}
+  \end{definition}
+  \pause
+  To assess the sensitivity of a Bayesian inverse problem with respect to
+  modeling uncertaintities, we compute partial derivative of $\Phi_{\rm KL}$
+  with respect to said model parameters.
+  \pause
+  \begin{alertblock}{}
+    \begin{center}
+      {\bf Q:} How do we differentiate this expression?
+    \end{center}
+  \end{alertblock}
+\end{frame}
+\begin{frame}
+  \begin{alertblock}{}
+    \begin{center}
+      {\bf Q:} How do we differentiate this expression?
+    \end{center}
+  \end{alertblock}
+  \[
+    \Phi_{\rm KL}
+    = \approx
+    \sum_{j=1}^k
+    \frac{1}{2}\left[
+      \underbrace{
+        \log(\lambda_j + 1)
+        - \frac{\lambda_j}{1+\lambda_j}
+      }_{\text{Eigenvalue Sensitivities}}
+      + \underbrace{
+        \norm{
+          \vec{m}_{\rm MAP} - \vec{m}_{\rm pr}
+        }_{\mat{\Gamma}_{\rm noise}^{-1}}^2
+      }_{\text{HDSA}}
+      \right]
+  \]
   \blfootnote{\fullcite{Sunseri2020}}
 \end{frame}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Eigenvalue Sensitivities: Finite Dimensional Example
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Eigenvalue Sensitivity: Finite Dimensional Example}
+\begin{frame}
+  \frametitle{Simple Finite Dimensional Example}
+  Consider an implicitly defined matrix $\mat{H}$ whose action is defined by:
+  \begin{subequations}\label{equ:Hdef}
+    \begin{alignat}{2}
+       & \mat{H} \mbf{v} \coloneqq  \mat{C}^\T \mbf{p},                    \\
+       & \text{where}\notag                                                \\
+       & \mat{A}(\theta) \mbf{u} + \mat{C} \mbf{v} = \mbf{0},              \\
+       & \mat{A}(\theta)^\T \mbf{p} + \mat{B}^\T\mat{B} \mbf{u} = \mbf{0}.
+    \end{alignat}
+  \end{subequations}
+  Furthermore, consider $\tilde{\mat{H}} = \mat{\Gamma}^{1/2} \mat{H}
+    \mat{\Gamma}^{1/2}$ with $\mat{\Gamma}$ symmetric positive definite.
+  \pause
+  \begin{alertblock}{}
+    To illustrate eigenvalue sensitivity analysis, we consider sensitivity of
+    the largest eigenvalue of $\tilde{\mat{H}}$ with respect to $\theta$.
+  \end{alertblock}
+  \pause
+  \begin{alertblock}{Note:}
+    Let $(\lambda, \mbf{w})$ be the dominant eigenpair of $\tilde{\mat{H}}$,
+    then $\mat{H} \mbf{v} = \lambda \mat{\Gamma}^{-1} \mbf{v}$ with $\mbf{v} =
+      \mat{\Gamma}^{1/2} \mbf{w}$.
+  \end{alertblock}
+\end{frame}
+\begin{frame}
+  \frametitle{Derivation}
+  We can define $\lambda$ as a function of uncertain model parameters implicitly:
+  \begin{align*}
+     &
+    \lambda(\theta)
+    = \mbf{v}^\T \mat{C}^\T \mbf{p},        \\
+     & \text{where}\notag                   \\
+     &
+    \mat{A}(\theta)\mbf{u}
+    + \mat{C} \mbf{v} = \mbf{0},            \\
+     &
+    \mat{A}({\theta})^\top \mbf{p}
+    + \mat{B}^\T \mat{B} \mbf{u} = \mbf{0}, \\
+     &
+    \mbf{v}^\T \mat{\Gamma}^{-1}\mbf{v}
+    - 1 = 0.
+  \end{align*}
+  \pause
+  \begin{definition}
+    To facilitate derivative computation, we consider the "meta-Lagrangian":
+    \begin{equation*}
+      \mc{L}
+      = \inp{\mbf{v}}{\mat{C}^\T \mbf{p}}
+      + \inp{\mbf{p}^*}{\mat{A}(\theta)\mbf{u} + \mat{C} \mbf{v}}
+      + \inp{\mbf{u}^*}{
+        \mat{A}(\theta)^\T \mbf{p} - \mat{B}^\T \mat{B} \mbf{u}
+      }
+      + \lambda^* \left( 1-\mbf{v}^\top \mat{\Gamma}^{-1} \mbf{v} \right)
+    \end{equation*}
+  \end{definition}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Solving for Lagrange Multipliers}
+  \begin{block}{}
+    \begin{equation*}
+      \mc{L}
+      = \inp{\mbf{v}}{\mat{C}^\T \mbf{p}}
+      + \inp{\mbf{p}^*}{\mat{A}(\theta)\mbf{u} + \mat{C} \mbf{v}}
+      + \inp{\mbf{u}^*}{
+        \mat{A}(\theta)^\T \mbf{p} - \mat{B}^\T \mat{B} \mbf{u}
+      }
+      + \lambda^* \left( 1-\mbf{v}^\top \mat{\Gamma}^{-1} \mbf{v} \right)
+    \end{equation*}
+  \end{block}
+  \begin{align*}
+    \mc{L}_\mbf{u}
+     & = \mat{A}^\top \mbf{p}^* + \mat{B}^\top\mat{B} \mbf{u}^* = 0,      \\
+    \mc{L}_\mbf{p}
+     & = \mat{A} \mbf{u}^* + \mat{C} \mbf{v} = 0,                         \\
+    \mc{L}_\mbf{v}
+     & = 2\mat{C}^\top \mbf{p} - 2\lambda^* \mat{\Gamma}^{-1} \mbf{v} = 0
+  \end{align*}
+\end{frame}
+\begin{frame}
+  \frametitle{Solving for Lagrange Multipliers}
+  \begin{block}{}
+    \begin{equation*}
+      \mc{L}
+      = \inp{\mbf{v}}{\mat{C}^\T \mbf{p}}
+      + \inp{\mbf{p}^*}{\mat{A}(\theta)\mbf{u} + \mat{C} \mbf{v}}
+      + \inp{\mbf{u}^*}{
+        \mat{A}(\theta)^\T \mbf{p} - \mat{B}^\T \mat{B} \mbf{u}
+      }
+      + \lambda^* \left( 1-\mbf{v}^\top \mat{\Gamma}^{-1} \mbf{v} \right)
+    \end{equation*}
+  \end{block}
+  \begin{minipage}{.5\linewidth}
+    \begin{align*}
+      \mc{L}_\mbf{u}
+       & = \mat{A}^\top \mbf{p}^* + \mat{B}^\top\mat{B} \mbf{u}^* = 0,      \\
+      \mc{L}_\mbf{p}
+       & = \mat{A} \mbf{u}^* + \mat{C} \mbf{v} = 0,                         \\
+      \mc{L}_\mbf{v}
+       & = 2\mat{C}^\top \mbf{p} - 2\lambda^* \mat{\Gamma}^{-1} \mbf{v} = 0
+    \end{align*}
+  \end{minipage}%
+  \begin{minipage}{.5\linewidth}
+    \begin{align*}
+       &
+      \lambda(\theta)
+      = \mbf{v}^\T \mat{C}^\T \mbf{p},        \\
+       & \text{where}\notag                   \\
+       &
+      \mat{A}(\theta)\mbf{u}
+      + \mat{C} \mbf{v} = \mbf{0},            \\
+       &
+      \mat{A}({\theta})^\top \mbf{p}
+      + \mat{B}^\T \mat{B} \mbf{u} = \mbf{0}, \\
+       &
+      \mbf{v}^\T \mat{\Gamma}^{-1}\mbf{v}
+      - 1 = 0.
+    \end{align*}
+  \end{minipage}
+  That is, $\mbf{u}^* = \mbf{u}$ and $\mbf{p}^* = \mbf{p}$. \pause Regarding
+  $\lambda^*$:
+  \[
+    0 =
+    2\mbf{p}^\T \mat{C}^\top \mbf{p}
+    - 2\lambda^* \mbf{p}^\T \mat{\Gamma}^{-1} \mbf{v}
+    = 2 \lambda - 2 \lambda^*
+    \implies \lambda = \lambda^*
+  \]
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eigenvalue Sensitivity}
+  \begin{block}{}
+    \begin{equation*}
+      \mc{L}
+      = \inp{\mbf{v}}{\mat{C}^\T \mbf{p}}
+      + \inp{\mbf{p}^*}{\mat{A}(\theta)\mbf{u} + \mat{C} \mbf{v}}
+      + \inp{\mbf{u}^*}{
+        \mat{A}(\theta)^\T \mbf{p} - \mat{B}^\T \mat{B} \mbf{u}
+      }
+      + \lambda^* \left( 1-\mbf{v}^\top \mat{\Gamma}^{-1} \mbf{v} \right)
+    \end{equation*}
+  \end{block}
+  Finally, $\mc{L}_{\theta_j}$ simplifies to
+  \begin{equation*}
+    \mc{L}_{\theta_j} =
+    \inp{\mbf{p}^*}{[\partial_j\mat{A}] \mbf{u}}
+    + \inp{\mbf{u}^*}{[\partial_j\mat{A}]^\top \mbf{p}}
+    =
+    2\inp{\mbf p}{[\partial_j\mat{A}] \mbf{u}}.
+  \end{equation*}
+  \pause
+  Therefore, to compute the sensitivity of $\lambda$ with respect to $\theta_j$,
+  we have the following algorithm:
+  \begin{itemize}[<+->]
+    \item solve the eigenproblem for eigenvector $\mbf{v}$;
+    \item solve $\mat{A} \mbf{u} + \mat{C} \mbf{v} = \mbf{0}$ for $\mbf{u}$;
+    \item solve $\mat{A}^\T \mbf{p} + \mat{B}^\T\mat{B}\mbf{u} = \mbf{0}$ for
+          $\mbf{p}$;
+    \item evaluate eigenvalue sensitivities \(
+          \partial_j \lambda(\mbf\theta)
+          = 2\inp{\mbf p}{[\partial_j\mat{A}] \mbf{u}},
+          \quad j \in \{1, \ldots, N\},
+          \)
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{Simple Numerical Example}
+  \[
+    \mat{A} = \begin{bmatrix}
+      -20 (1 + a_2\theta_2) & 3(1 + a_3\theta_3)    & 0                     \\
+      1 + a_1 \theta_1      & -20 (1 + a_2\theta_2) & 3(1 + a_3\theta_3)    \\
+      0                     & 1 + a_1 \theta_1      & -20 (1 + a_2\theta_2)
+    \end{bmatrix}, \quad \mbf{a} = \begin{bmatrix}0.08 & 0.06 & 0.09\end{bmatrix}^\top.
+  \]
+  Also, the remaining matrices for the present example are as follows:
+  \[
+    \mat{B} = \begin{bmatrix} 1 & -1 & 1 \\  -1 & 1 & 1 \end{bmatrix} \quad
+    \mat{C} = \begin{bmatrix} 1 & 2 \\ 3 & 4 \\  5 & 6\end{bmatrix}, \quad
+    \mat{\Gamma} = \begin{bmatrix} 3 & 0 & 0\\ 0 & 2 & 0 \\ 0 & 0 & 1\end{bmatrix}.
+  \]
+  In this case, the matrix $\mat{H}$ is a $2 \times 2$ matrix.
+\end{frame}
+\begin{frame}
+  \begin{figure}
+    \centering
+    \includegraphics[width=.8\textwidth]{./resources/findim_fd_err.png}
+    \caption{Forward finite difference error vs. exact}
+  \end{figure}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Eigenvalue Sensitivities: Infinite Dimensional Example
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Eigenvalue Sensitivity: Infinite Dimensional Example}
+\begin{frame}
+  \frametitle{Simple Infinite Dimensional Example}
+  For a domain $\Omega \subset \R^n$ with boundary $\partial \Omega$, consider the
+  elliptic PDE:
+  \begin{align*}
+    -\laplacian u + c u & = f, \quad \text{in } \Omega         \\
+    \grad u \vdot n     & = g, \quad \text{in } \partial\Omega
+  \end{align*}
+  \begin{alertblock}{Bayesian Linear Inverse Problem}
+    Using measurements of $u$ on $\Omega$, we seek to estimate $f$.
+  \end{alertblock}
+  \pause
+  \begin{alertblock}{Goal:}
+    Study the sensitivity of the largest eigenvalue of the data-misfit Hessian
+    for the inversion with respect to constant $c$.
+  \end{alertblock}
+  \pause
+  \begin{align*}
+     & \mc{L}(u,p,f)
+    = \frac{1}{2} \norm{\mc{B}u(f) - \obs}_{\Gnoise^{-1}}^2
+    + \frac{1}{2} \norm{f - f_{\rm pr}}_{\mc{C}_0^{-1}}^2 \\
+     & \quad
+    \int_\Omega \grad u \vdot \grad p \dd{x}
+    + c \int_\Omega up \dd{x}
+    - \int_\Omega fp \dd{x}
+    - \int_{\partial\Omega} gp \dd{s}
+  \end{align*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The adjoint based expression the data-misfit Hessian action}
+  Taking variations in $u,p$ and $f$ twice, we find the data-misfit Hessian:
+  \[
+    \mc{L}^H_f(\tilde{f})
+    =
+    \underbrace{
+      - \int_\Omega \tilde{f} \hat{p} \dd{x}
+    }_{\mc{H}(f)(\hat{f},\tilde{f})}
+    + \inp{\tilde{f}}{\hat{f}}_{\mc{C}_0^{-1}}
+  \]
+  which, to evaluate in direction $\hat{f}$, we need to solve the incremental
+  system:
+  \begin{align*}
+    \mc{L}^H_v(\tilde{p})
+     & =
+    \int_\Omega \grad \hat{u} \vdot \grad \tilde{p} \dd{x}
+    + c\int_\Omega \hat{u} \tilde{p} \dd{x}
+    - \int_\Omega \hat{f} \tilde{p} \dd{x}
+     & = 0, \quad \forall \tilde{p} \in V \\
+    \mc{L}^H_u(\tilde{u})
+     & =
+    \int_\Omega \grad \tilde{u} \vdot \grad \hat{p} \dd{x}
+    + c \int_\Omega \tilde{u} \hat{p} \dd{x}
+    + \inp{\mc{B} \tilde{u}}{\mc{B}\hat{u}}_{\Gnoise^{-1}}
+     & = 0, \quad \forall \tilde{u} \in V
+  \end{align*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eigenproblem Constraint}
+  \begin{align*}
+    \int_\Omega \grad \hat{u} \vdot \grad \tilde{p} \dd{x}
+    + c\int_\Omega \hat{u} \tilde{p} \dd{x}
+    - \int_\Omega \psi \tilde{p} \dd{x}
+     & = 0,
+     & \quad \forall \tilde{p} \in V \\
+    \int_\Omega \grad \tilde{u} \vdot \grad \hat{p} \dd{x}
+    + c \int_\Omega \tilde{u} \hat{p} \dd{x}
+    + \inp{\mc{B} \tilde{u}}{\mc{B}\hat{u}}_{\Gnoise^{-1}}
+     & = 0,
+     & \quad \forall \tilde{u} \in V \\
+    -\int_\Omega \phi \hat{p} \dd{x}
+     & =
+    \lambda \inp{\phi}{\psi}_{\mc{C}_0^{-1}},
+     & \quad \forall \phi \in V      \\
+    1 - \inp{\psi}{\psi}_{\mc{C}_0^{-1}}
+     & = 0.
+     &
+  \end{align*}
+  \pause
+  \begin{align*}
+     & ~ \mc{L}^E(\hat{u},\hat{p},\psi,\hat{u}^*,\hat{p}^*,\lambda^*)
+    = \left[
+      -\int_\Omega \psi \hat{p} \dd{x}
+      \right]
+    + \lambda^* \left[
+    1 - \inp{\psi}{\psi}_{\mc{C}_0^{-1}}
+    \right]                                                           \\
+     & ~
+    + \left[
+      \int_\Omega \grad \hat{u} \vdot \grad \hat{p}^* \dd{x}
+      + c\int_\Omega \hat{u} \hat{p}^* \dd{x}
+      - \int_\Omega \psi \hat{p}^* \dd{x}
+    \right]                                                           \\
+     & ~
+    + \left[
+      \int_\Omega \grad \hat{u}^* \vdot \grad \hat{p} \dd{x}
+      + c \int_\Omega \hat{u}^* \hat{p} \dd{x}
+      + \inp{\mc{B} \hat{u}^*}{\mc{B}\hat{u}}_{\Gnoise^{-1}}
+      \right]
+  \end{align*}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Solving for Lagrange Multipliers}
+  \begin{align*}
+    \mc{L}^E_{\hat{p}}(\tilde{p})
+     & =
+    \int_\Omega \grad \hat{u}^* \vdot \grad \tilde{p} \dd{x}
+    + c \int_\Omega \hat{u}^* \tilde{p} \dd{x}
+    -\int_\Omega \psi \tilde{p} \dd{x}
+     & = 0, \forall \tilde{p} \in V    \\
+    \mc{L}^E_{\hat{u}}(\tilde{u})
+     & =
+    \int_\Omega \grad \tilde{u} \vdot \grad \hat{p}^* \dd{x}
+    + c\int_\Omega \tilde{u} \hat{p}^* \dd{x}
+    + \inp{\mc{B} \hat{u}^*}{\mc{B}\tilde{u}}_{\Gnoise^{-1}}
+     & = 0, \forall \tilde{u} \in V    \\
+    \mc{L}^E_{\psi}(\tilde{\psi})
+     & =
+    -2 \int_\Omega \tilde{\psi} \hat{p} \dd{x}
+    -2 \lambda^* \inp{\psi}{\tilde{\psi}}_{\mc{C}_0^{-1}}
+     & = 0, \forall \tilde{\psi} \in V
+  \end{align*}
+\end{frame}
+\begin{frame}
+  \frametitle{Solving for Lagrange Multipliers: Relating it Back}
+  \begin{align*}
+    \mc{L}^E_{\hat{p}}(\tilde{p})
+     & =
+    \underbrace{
+      \int_\Omega \grad \hat{u}^* \vdot \grad \tilde{p} \dd{x}
+      + c \int_\Omega \hat{u}^* \tilde{p} \dd{x}
+    }_{\tilde{\mbf{p}}^\T \mat{A} \hat{\mbf{u}}^*}
+    \underbrace{
+      -\int_\Omega \psi \tilde{p} \dd{x}
+    }_{\tilde{\mbf{p}}^\T \mat{C} \mbf{\psi}}
+     & = 0, \forall \tilde{p} \in V    \\
+    \mc{L}^E_{\hat{u}}(\tilde{u})
+     & =
+    \underbrace{
+      \int_\Omega \grad \tilde{u} \vdot \grad \hat{p}^* \dd{x}
+      + c\int_\Omega \tilde{u} \hat{p}^* \dd{x}
+    }_{\tilde{\mbf{u}}^\T \mat{A}^\T \hat{\mbf{p}}^*}
+    + \inp{\mc{B} \hat{u}^*}{\mc{B}\tilde{u}}_{\Gnoise^{-1}}
+     & = 0, \forall \tilde{u} \in V    \\
+    \mc{L}^E_{\psi}(\tilde{\psi})
+     & =
+    -2 \int_\Omega \tilde{\psi} \hat{p} \dd{x}
+    -2 \lambda^* \inp{\psi}{\tilde{\psi}}_{\mc{C}_0^{-1}}
+     & = 0, \forall \tilde{\psi} \in V
+  \end{align*}
+  Like in the finite dimensional example, we find $\hat{u}^* = \hat{u},
+    \hat{p}^* = \hat{p}$ and $\lambda^* = \lambda$. Hence:
+  \[
+    \mc{L}^E_c
+    =
+    \int_\Omega \hat{u} \hat{p}^* \dd{x}
+    + \int_\Omega \hat{u}^* \hat{p} \dd{x}
+    =
+    2\int_\Omega \hat{u} \hat{p} \dd{x}
+  \]
+\end{frame}
+\begin{frame}
+  \frametitle{Forward finite difference error vs. exact}
+  \begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{./resources/infdim_fd_err.png}
+  \end{figure}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Conclusion and Future Work
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+  \frametitle{Conclusion and Future Work}
+  \begin{itemize}
+    \item Eigenvalue Sensitivities is a scalable and exact method of leveraging
+          existing structures to compute derivatives of eigenvalue based expressions.
+    \item Avoids difficulties in finite-difference methods resolving and solves
+          half the puzzle of using the information gain as a sensitivity objective.
+  \end{itemize}
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% References
