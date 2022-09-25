@@ -1,19 +1,16 @@
-JobName=slides-amgss-april2022
-TeX=pdflatex
-LatexFlags= -jobname=$(JobName) --shell-escape
+BASENAME = main
 
-default:
-	make build
-	biber $(JobName)
-	make build
-	make build
-	make clean
+all: pdf
 
-build:
-	$(TeX) $(LatexFlags) main.tex
+pdf::
+	latexmk --pdf ${BASENAME}
 
-clean:
-	rm -f $(JobName).log $(JobName).aux $(JobName).out $(JobName).toc *.cpt
-	rm -f $(JobName).nav $(JobName).snm $(JobName).vrb
-	rm -f $(JobName).bbl $(JobName).blg $(JobName).bcf $(JobName).run.xml
-	rm -rf _minted-*
+ps::
+	latexmk --ps ${BASENAME}
+
+clean::
+	latexmk -c ${BASENAME}
+	rm -f ${BASENAME}.pdf
+	rm -f ${BASENAME}.bbl
+	rm -f ${BASENAME}.run.xml
+	rm -f ${BASENAME}.synctex.gz
