@@ -475,10 +475,10 @@
   Consider an implicitly defined matrix $\mat{H}$ whose action is defined by:
   \begin{subequations}\label{equ:Hdef}
     \begin{alignat}{2}
-       & \mat{H} \mbf{v} \coloneqq  \mat{C}^\T \mbf{p},                    \\
-       & \text{where}\notag                                                \\
-       & \mat{A}(\theta) \mbf{u} + \mat{C} \mbf{v} = \mbf{0},              \\
-       & \mat{A}(\theta)^\T \mbf{p} + \mat{B}^\T\mat{B} \mbf{u} = \mbf{0}.
+       & \mat{H} \mbf{v} \coloneqq  \mat{C}^\T \mbf{p}                    \\
+       & \text{where}\notag                                               \\
+       & \mat{A}(\theta) \mbf{u} + \mat{C} \mbf{v} = \mbf{0}              \\
+       & \mat{A}(\theta)^\T \mbf{p} + \mat{B}^\T\mat{B} \mbf{u} = \mbf{0}
     \end{alignat}
   \end{subequations}
   Furthermore, consider $\tilde{\mat{H}} = \mat{\Gamma}^{1/2} \mat{H}
@@ -501,17 +501,17 @@
   \begin{align*}
      &
     \lambda(\theta)
-    = \mbf{v}^\T \mat{C}^\T \mbf{p},        \\
-     & \text{where}\notag                   \\
+    = \mbf{v}^\T \mat{C}^\T \mbf{p}        \\
+     & \text{where}\notag                  \\
      &
     \mat{A}(\theta)\mbf{u}
-    + \mat{C} \mbf{v} = \mbf{0},            \\
+    + \mat{C} \mbf{v} = \mbf{0}            \\
      &
     \mat{A}({\theta})^\top \mbf{p}
-    + \mat{B}^\T \mat{B} \mbf{u} = \mbf{0}, \\
+    + \mat{B}^\T \mat{B} \mbf{u} = \mbf{0} \\
      &
     \mbf{v}^\T \mat{\Gamma}^{-1}\mbf{v}
-    - 1 = 0.
+    - 1 = 0
   \end{align*}
   \pause
   \begin{definition}
@@ -543,9 +543,9 @@
   \end{block}
   \begin{align*}
     \mc{L}_\mbf{u}
-     & = \mat{A}^\top \mbf{p}^* + \mat{B}^\top\mat{B} \mbf{u}^* = 0,      \\
+     & = \mat{A}^\top \mbf{p}^* + \mat{B}^\top\mat{B} \mbf{u}^* = 0       \\
     \mc{L}_\mbf{p}
-     & = \mat{A} \mbf{u}^* + \mat{C} \mbf{v} = 0,                         \\
+     & = \mat{A} \mbf{u}^* + \mat{C} \mbf{v} = 0                          \\
     \mc{L}_\mbf{v}
      & = 2\mat{C}^\top \mbf{p} - 2\lambda^* \mat{\Gamma}^{-1} \mbf{v} = 0
   \end{align*}
@@ -566,9 +566,9 @@
   \begin{minipage}{.5\linewidth}
     \begin{align*}
       \mc{L}_\mbf{u}
-       & = \mat{A}^\top \mbf{p}^* + \mat{B}^\top\mat{B} \mbf{u}^* = 0,      \\
+       & = \mat{A}^\top \mbf{p}^* + \mat{B}^\top\mat{B} \mbf{u}^* = 0       \\
       \mc{L}_\mbf{p}
-       & = \mat{A} \mbf{u}^* + \mat{C} \mbf{v} = 0,                         \\
+       & = \mat{A} \mbf{u}^* + \mat{C} \mbf{v} = 0                          \\
       \mc{L}_\mbf{v}
        & = 2\mat{C}^\top \mbf{p} - 2\lambda^* \mat{\Gamma}^{-1} \mbf{v} = 0
     \end{align*}
@@ -577,17 +577,17 @@
     \begin{align*}
        &
       \lambda(\theta)
-      = \mbf{v}^\T \mat{C}^\T \mbf{p},        \\
-       & \text{where}\notag                   \\
+      = \mbf{v}^\T \mat{C}^\T \mbf{p}        \\
+       & \text{where}\notag                  \\
        &
       \mat{A}(\theta)\mbf{u}
-      + \mat{C} \mbf{v} = \mbf{0},            \\
+      + \mat{C} \mbf{v} = \mbf{0}            \\
        &
       \mat{A}({\theta})^\top \mbf{p}
-      + \mat{B}^\T \mat{B} \mbf{u} = \mbf{0}, \\
+      + \mat{B}^\T \mat{B} \mbf{u} = \mbf{0} \\
        &
       \mbf{v}^\T \mat{\Gamma}^{-1}\mbf{v}
-      - 1 = 0.
+      - 1 = 0
     \end{align*}
   \end{minipage}
   That is, $\mbf{u}^* = \mbf{u}$ and $\mbf{p}^* = \mbf{p}$. \pause Regarding
@@ -620,20 +620,20 @@
     \inp{\mbf{p}^*}{[\partial_j\mat{A}] \mbf{u}}
     + \inp{\mbf{u}^*}{[\partial_j\mat{A}]^\top \mbf{p}}
     =
-    2\inp{\mbf p}{[\partial_j\mat{A}] \mbf{u}}.
+    2\inp{\mbf p}{[\partial_j\mat{A}] \mbf{u}}
   \end{equation*}
   \pause
   Therefore, to compute the sensitivity of $\lambda$ with respect to $\theta_j$,
   we have the following algorithm:
   \begin{itemize}[<+->]
-    \item solve the eigenproblem for eigenvector $\mbf{v}$;
-    \item solve $\mat{A} \mbf{u} + \mat{C} \mbf{v} = \mbf{0}$ for $\mbf{u}$;
+    \item solve the eigenproblem for eigenvector $\mbf{v}$
+    \item solve $\mat{A} \mbf{u} + \mat{C} \mbf{v} = \mbf{0}$ for $\mbf{u}$
     \item solve $\mat{A}^\T \mbf{p} + \mat{B}^\T\mat{B}\mbf{u} = \mbf{0}$ for
-          $\mbf{p}$;
+          $\mbf{p}$
     \item evaluate eigenvalue sensitivities \(
           \partial_j \lambda(\mbf\theta)
           = 2\inp{\mbf p}{[\partial_j\mat{A}] \mbf{u}},
-          \quad j \in \{1, \ldots, N\},
+          \quad j \in \{1, \ldots, N\}
           \)
   \end{itemize}
 \end{frame}
@@ -742,7 +742,7 @@
     \lambda \inp{\phi}{\psi}_{\mc{C}_0^{-1}},
      & \quad \forall \phi \in V      \\
     1 - \inp{\psi}{\psi}_{\mc{C}_0^{-1}}
-     & = 0.
+     & = 0
      &
   \end{align*}
   \pause
@@ -842,22 +842,23 @@
 %%% Conclusion and Future Work
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
-  \frametitle{Conclusion and Future Work}
+  \frametitle{Conclusion}
+  In summary,
   \begin{itemize}
     \item Eigenvalue Sensitivities is a scalable and exact method of leveraging
           existing structures to compute derivatives of eigenvalue based expressions.
     \item Avoids difficulties in finite-difference methods resolving and solves
           half the puzzle of using the information gain as a sensitivity objective.
   \end{itemize}
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% References
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{References}
-\begin{frame}[allowframebreaks]
-  \frametitle{References}
-  \printbibliography
+  \pause
+  \begin{block}{Future Work}
+    Wrap up sensitivity analysis of the Costa-Rica problem via the
+    KL-Divergence.
+    \begin{itemize}
+      \item Complete HDSA portion of KL Divergence sensitivities
+      \item Interpret Sensitivities in terms of real-world model
+    \end{itemize}
+  \end{block}
 \end{frame}
 
 \end{document}
