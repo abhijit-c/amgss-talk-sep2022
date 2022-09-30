@@ -337,7 +337,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{MAP Estimation vs. True Parameter}
+  \frametitle{True Parameter vs. MAP Estimation}
   \begin{figure}
     \centering
     \includegraphics[width=0.48\textwidth]{./resources/m_true}
@@ -345,23 +345,32 @@
   \end{figure}
 \end{frame}
 \begin{frame}
-  \frametitle{Prior Samples}
+  \frametitle{Prior and Posterior Sample}
   \begin{figure}
     \centering
-    \includegraphics[width=0.48\textwidth]{./resources/prior_sample_1}
     \includegraphics[width=0.48\textwidth]{./resources/prior_sample_2}
+    \includegraphics[width=0.48\textwidth]{./resources/post_sample_2}
     %\includegraphics[width=0.30\textwidth]{./resources/prior_sample_3}
   \end{figure}
 \end{frame}
-\begin{frame}
-  \frametitle{Posterior Samples}
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.48\textwidth]{./resources/post_sample_1}
-    \includegraphics[width=0.48\textwidth]{./resources/post_sample_2}
-    %\includegraphics[width=0.30\textwidth]{./resources/post_sample_3}
-  \end{figure}
-\end{frame}
+%\begin{frame}
+%  \frametitle{Prior and Posterior Sample}
+%  \begin{figure}
+%    \centering
+%    \includegraphics[width=0.48\textwidth]{./resources/prior_sample_1}
+%    \includegraphics[width=0.48\textwidth]{./resources/prior_sample_2}
+%    %\includegraphics[width=0.30\textwidth]{./resources/prior_sample_3}
+%  \end{figure}
+%\end{frame}
+%\begin{frame}
+%  \frametitle{Posterior Samples}
+%  \begin{figure}
+%    \centering
+%    \includegraphics[width=0.48\textwidth]{./resources/post_sample_1}
+%    \includegraphics[width=0.48\textwidth]{./resources/post_sample_2}
+%    %\includegraphics[width=0.30\textwidth]{./resources/post_sample_3}
+%  \end{figure}
+%\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Information Gain as an Objective for UQ
@@ -695,8 +704,55 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{First order optimality conditions}
+  \begin{block}{}
+    \begin{align*}
+       & \mc{L}(u,p,f)
+      = \frac{1}{2} \norm{\mc{B}u(f) - \obs}_{\Gnoise^{-1}}^2
+      + \frac{1}{2} \norm{f - f_{\rm pr}}_{\mc{C}_0^{-1}}^2 \\
+       & \quad
+      \int_\Omega \grad u \vdot \grad p \dd{x}
+      + c \int_\Omega up \dd{x}
+      - \int_\Omega fp \dd{x}
+      - \int_{\partial\Omega} gp \dd{s}
+    \end{align*}
+  \end{block}
+  \begin{align*}
+    \mc{L}_p(\tilde{p})
+     & =
+    \int_\Omega \grad u \vdot \grad \tilde{p} \dd{x}
+    + c \int_\Omega u\tilde{p} \dd{x}
+    - \int_\Omega f\tilde{p} \dd{x}
+    - \int_{\partial\Omega} g\tilde{p} \dd{s}
+    = 0,
+     & \forall \tilde{p} \in V \\
+    \mc{L}_u(\tilde{u})
+     & =
+    \inp{\mc{B}u - \obs}{\mc{B}\tilde{u}}_{\Gnoise^{-1}}
+    + \int_\Omega \grad \tilde{u} \vdot \grad p \dd{x}
+    + c \int_\Omega \tilde{u}p \dd{x}
+    = 0,
+     & \forall \tilde{u} \in V \\
+    \mc{L}_f(\tilde{f})
+     & =
+    \inp{f - f_{\rm pr}}{\tilde{f}}_{\mc{C}_0^{-1}}
+    - \int_\Omega \tilde{f} p \dd{x}
+    = 0,
+     & \forall \tilde{f} \in V
+  \end{align*}
+  \pause
+  Now, build the "meta-Lagrangian":
+  \[
+    \mc{L}^H(u,p,f,\hat{u},\hat{p},\hat{f})
+    = \mc{L}_v(\hat{p})
+    + \mc{L}_u(\hat{u})
+    + \mc{L}_f(\hat{f})
+  \]
+\end{frame}
+
+\begin{frame}
   \frametitle{The adjoint based expression the data-misfit Hessian action}
-  Taking variations in $u,p$ and $f$ twice, we find the data-misfit Hessian:
+  Taking variations in $u,p$ and $f$, we find the data-misfit Hessian:
   \[
     \mc{L}^H_f(\tilde{f})
     =
