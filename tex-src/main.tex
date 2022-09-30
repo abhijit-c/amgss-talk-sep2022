@@ -416,17 +416,17 @@
       \right)
       + \norm{
         \vec{m}_{\rm MAP} - \vec{m}_{\rm pr}
-      }_{\mat{\Gamma}_{\rm noise}^{-1}}^2
+      }_{\mc{C}_{\rm pr}^{-1}}^2
       \right]    \\
        & \approx
-      \sum_{j=1}^k
-      \frac{1}{2}\left[
-      \log(\lambda_j + 1)
-      - \frac{\lambda_j}{1+\lambda_j}
-      + {\norm{
-        \vec{m}_{\rm MAP} - \vec{m}_{\rm pr}
-      }_{\mat{\Gamma}_{\rm noise}^{-1}}^2}
-      \right]
+      \frac{1}{2}\sum_{j=1}^k
+      \left[
+        \log(\lambda_j + 1)
+        - \frac{\lambda_j}{1+\lambda_j}
+        \right]
+      + \frac{1}{2}{\norm{
+          \vec{m}_{\rm MAP} - \vec{m}_{\rm pr}
+        }_{\mc{C}_{\rm pr}^{-1}}^2}
     \end{align*}
   \end{definition}
   \pause
